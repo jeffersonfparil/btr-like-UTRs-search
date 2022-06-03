@@ -81,8 +81,10 @@ Note: Just naively taking the top blast hit. Will need to assess the other blast
 time \
 for SEQ in SRR9889998 SRR9890000
 do
-    for BTR in "Btr1-like-a" "Btr2-like-a"
+    # SEQ=SRR9890000
+    for BTR in $(grep "^>" Btr-like_ref_seq_.fa | sed "s/^>//g")
     do
+        # BTR=$(grep "^>" Btr-like_ref_seq_.fa | sed "s/^>//g" | head -n2 | tail -n1)
         NAME=$(grep "${BTR}" ${SEQ}.blastout | head -n1 | cut -f7 )
         echo $NAME > ${SEQ}-${BTR}.tmp
 
@@ -106,6 +108,12 @@ do
     done
 done
 
+for f in $(ls *.aln.tmp)
+do
+    echo "##########################"
+    echo $f
+    grep "# Score" $f
+done
 
 
 ```
