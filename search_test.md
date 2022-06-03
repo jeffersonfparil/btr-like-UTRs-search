@@ -24,9 +24,12 @@ sudo ln -s /usr/bin/python3 /usr/bin/python ### hisat2 needs python and python2 
 
 ## Download PRJNA558196 (Barakate et al 2021) anther RNAseq data
 ```{sh}
+time \
 prefetch \
     -O ${DIR}/FASTQ \
     PRJNA558196
+
+time \
 fastq-dump \
     --split-files ${DIR}/FASTQ/PRJNA558196.sra
 ```
