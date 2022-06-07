@@ -30,6 +30,7 @@ rm GeMoMa.zip
 
 sudo apt install -y sra-toolkit ncbi-entrez-direct cmake
 # sudo apt install cutadapt
+
 git clone https://github.com/DaehwanKimLab/hisat2.git
 cd hisat2
 make
@@ -47,11 +48,11 @@ rm TPMCalculator-0.0.2.x86-linux.tar.gz
 1. Dowload the genome and annotation files of Morex V3 the representative reference genome of Hordeum vulgare
 ```{sh}
 wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/904/849/725/GCF_904849725.1_MorexV3_pseudomolecules_assembly/GCF_904849725.1_MorexV3_pseudomolecules_assembly_genomic.fna.gz
-wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/904/849/725/GCF_904849725.1_MorexV3_pseudomolecules_assembly/GCF_904849725.1_MorexV3_pseudomolecules_assembly_genomic.gff.gz
+wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/904/849/725/GCF_904849725.1_MorexV3_pseudomolecules_assembly/GCF_904849725.1_MorexV3_pseudomolecules_assembly_genomic.gtf.gz
 gunzip -c GCF_904849725.1_MorexV3_pseudomolecules_assembly_genomic.fna.gz > ${DIR_REF}/Morex_V3.fasta
-gunzip -c GCF_904849725.1_MorexV3_pseudomolecules_assembly_genomic.gff.gz > ${DIR_REF}/Morex_V3.gff
+gunzip -c GCF_904849725.1_MorexV3_pseudomolecules_assembly_genomic.gtf.gz > ${DIR_REF}/Morex_V3.gtf
 rm GCF_904849725.1_MorexV3_pseudomolecules_assembly_genomic.fna.gz
-rm GCF_904849725.1_MorexV3_pseudomolecules_assembly_genomic.gff.gz
+rm GCF_904849725.1_MorexV3_pseudomolecules_assembly_genomic.gtf.gz
 ```
 
 2. Map the genome annotations of Morex V3 into the GoldenPromise genome assembly
@@ -59,7 +60,7 @@ rm GCF_904849725.1_MorexV3_pseudomolecules_assembly_genomic.gff.gz
 time \
 java -jar -Xmx280G GeMoMa-1.8.jar CLI \
         GeMoMaPipeline \
-        threads=16 \
+        threads=32 \
         GeMoMa.Score=ReAlign \
         AnnotationFinalizer.r=NO \
         p=true pc=true pgr=true \
@@ -122,6 +123,11 @@ rm new_names.tmp
 rm -R SRA/
 ```
 
+4. Clean-up: remove the m54053_* sequences
+```{sh}
+rm ${DIR_FASTQ}/m54053_*
+```
+
 ## Map the RNAseq to the Golden Promise reference genome
 1. Build the reference index: OUTPUT: ${REF%.fasta*}
 ```{sh}
@@ -138,11 +144,16 @@ REF=$1
 R1=$2
 R2=$3
 SAMOUT=${R1%.fastq*}.sam
+BAMOUT=${R1%.fastq*}.bam
 hisat2 \
     -x ${REF%.fasta*} \
     -1 ${R1} \
     -2 ${R2} \
     -S ${SAMOUT}
+samtools \
+    sort ${SAMOUT} \
+    -O BAM \
+    > ${BAMOUT}
 ' > map_RNAseq.sh
 chmod +x map_RNAseq.sh
 time \
@@ -151,8 +162,8 @@ parallel --link \
     ${REF} \
     {1} \
     {2} \
-    ::: $(ls ${DIR_FASTQ}/*_1.fastq.gz) \
-    ::: $(ls ${DIR_FASTQ}/*_2.fastq.gz)
+    ::: $(ls ${DIR_FASTQ}/*_1.fastq.gz | sort) \
+    ::: $(ls ${DIR_FASTQ}/*_2.fastq.gz | sort)
 
 ```
 
@@ -160,5 +171,6 @@ parallel --link \
 ```{sh}
 time \
 TPMCalculator \
-    -g GTF_file [-d BAM_files_directory|-b BAM_file]
+    -g ${DIR_REF}/Morex_V3.gtf \
+    -d BAM_files_directory|-b BAM_file]
 ```
