@@ -8,6 +8,7 @@ DIR_FASTQ=${DIR}/FASTQ ### Assumes the reads are free of adapter sequences
 DIR_REF=${DIR}/REF
 DIR_BAM=${DIR}/BAM
 DIR_GTF=${DIR}/GTF
+DIR_GFFREAD_FASTA=${DIR}/GFFREAD_FASTA
 REF=${DIR_REF}/GoldenPromise.fasta
 PATH=${PATH}:${DIR}/mmseqs/bin
 PATH=${PATH}:${DIR}
@@ -41,15 +42,22 @@ PATH=${PATH}:$(pwd)
 sudo ln -s /usr/bin/python3 /usr/bin/python ### hisat2 needs python and python2 is now fully deprecated and we may have to specify that the default python is python3
 cd ${DIR}
 
-wget https://github.com/ncbi/TPMCalculator/releases/download/0.0.2/TPMCalculator-0.0.2.x86-linux.tar.gz
-tar -xvzf TPMCalculator-0.0.2.x86-linux.tar.gz
-PATH=${PATH}:$(pwd)
-rm TPMCalculator-0.0.2.x86-linux.tar.gz
+sudo apt install samtools bamtools
 
-git clone https://github.com/gpertea/stringtie.git
-cd stringtie
-make release
-cd ${DIR}
+# Install IGV locally
+
+# wget https://github.com/ncbi/TPMCalculator/releases/download/0.0.2/TPMCalculator-0.0.2.x86-linux.tar.gz
+# tar -xvzf TPMCalculator-0.0.2.x86-linux.tar.gz
+# PATH=${PATH}:$(pwd)
+# rm TPMCalculator-0.0.2.x86-linux.tar.gz
+# 
+# git clone https://github.com/gpertea/stringtie.git
+# cd stringtie
+# make release
+# cd ${DIR}
+# 
+# sudo apt install emboss
+
 ```
 
 ## Map the Morex v3 annotations into the GoldenPromise genome assembly
@@ -78,6 +86,95 @@ java -jar -Xmx280G GeMoMa-1.8.jar CLI \
         a=${DIR_REF}/Morex_V3.gff \
         g=${DIR_REF}/Morex_V3.fasta \
         outdir=${DIR_REF}
+```
+
+3. Btr gene sequences
+```{${DIR_REF}/GeMoMa_annotations/Btr_genes.fasta}
+>HORVU.MOREX.r2.2HG0104610.1(Btr2-like-extra)
+ATGGGCAAGCTCCTCTGCGACTCCTCCTCCGGCGGCGCCGCCGTCGCCGTTGCCGAGGCTCTCCTGCCCT
+CCCCCGCCCCGCCCTCGCCGCCCAGCGCCGCCGCCTGCTCCGGATCTGGGCGCTCGACGACCAGCAGCGG
+CTGGTCCGAGCGCCTGGCGCTCCACTGCTGCGGCCCCATCCCGTCGCTGCCGGTGGCCCGCATCGCCGAC
+CTCCGCGACAACCACCACGACCGCCATGACGAGCGGCTCGCTCTGAACAGGCTCGAGGATGCGAGGGACT
+TCGCCAAGCGCGCGCTCCGTGGGGTGGATGGAGCCCTCAAGCTCCTGGGCTCCGTCCAGTACATGCTTCA
+CGACCTCGGCGCCGGCGCGGCCGGGGGTAGGCAGGCGATGGAAGAGCAGCTCCAGGCCGCCGCCCGCAAG
+CTCCAGCTCGTGGCGGTCAGCACGTGCAACACGCGCTCGCTGGCCCGCATGGCCACCGAGCCTCCCATCG
+GCAACCGCGTCCAGTGA
+>HORVU.MOREX.r2.3HG0195160.1(Btr2-like-b1)
+ATGGAGGAGTGGAGGAATCTGGCGTTGGCGGCGGCGGGTGAAAGCTTAGCCAACACCATGACCCGCCACA
+TGGGTGTAGCGGAGGCCATCGCTCGCGCCGGCCAGCGGTACCGCCTGGCCGCCGAGGAGTGTCGCGGATT
+CGGCCAGGGCGTGCACCCGACGCCCAACGCCGGCGAGCGCGCTTCAGCAGGCGGCGACTTCGTCGACCTC
+GCCATCGACCGGATCAAGAGCATCAGCAGGTTCCACGCCGTGCGGGGCAGCGTCTTCTCCCTCTGCGTCC
+GGCGTATCGGGCTCCAGGGCATCGGGCTCCACGGCGACGAGGCCCGCCACGCGGAGACGGCGATGCTGTC
+GCTGCGTTCCGCCAAGTCGCACGGCCATGCGGCCCTCCGCGTCTTCGAGCGCATGCTCAGGCCGCCGTCG
+CCGCAAGCGGTCGCCCGCGCGTGGGCGCCCGCGGCCGAGCAGCTCCTGCGCCGCGCGATCAACAATCTGG
+ACATGGCGGCGGCCTCCGTGGGGCGGATACGCCCGGCCATCGTCGTCGAGTACAAGTACGCCCGGAAGCT
+TCTGAATGCCTCCATATAG
+>HORVU.MOREX.r2.3HG0195170.1(Btr1-like-b1)
+ATGGCGCAGCCGGCAGGATGGAAGGCGATGTACCAGCAAGTGGTGATCGAGGCGGACGGCAGCTGCGCCG
+ACGTCGAGCACAGAGTCGCCGCCGCGCGTACGGCGCTGGAGTCCCCGGAGGCGGTGCTGACCAGCCGCGA
+CCCCACGGGGGTCTACACCTTGCTGAAGTCCGCGCTGGACGACGTCGAGCAAGCATCCGACTCCCTCTCC
+GCCTTCATCATCCACGCGGTGGCGGCCGAGCGCCTGGCGCTCCACGGCTGCGGCGTCATCCCGTCGCAGC
+CGGTGGCCCGCATCGCCGACCTCCGCGACGACCACCACGACCGCCACGACGAGCGGCTCGCTCTGAACAG
+GCTCGAGGACGCCAGGGACTTCGCCAAGCGCGCGCTCCGCGGGGTGGATGGAGCCCTCAAGCTCCTGGGC
+TCCGTCCAGTACATGCTTCGCGACCTCGGCGCCGGCGCGGCAGGGCGCAGGCAGGCGATGAAAGAGCAGC
+TCCAGGCCGCCGCCCGCGAGCTCCAGCTCGTGGCGGTCAGCGTGTGCAACACGCGCTCGCTGGCCCGCAT
+GGCCACCGAGCCTCCCATCGGCAACCGCGTCCAGTGA
+>HORVU.MOREX.r2.3HG0195460.1(Btr1-like-a)
+ATGGCGCAGCCGGCAGGATGGAAGGCGATGTACCAGCAAGTGGTGATCGAGGCGGACGGCAGCTGCGCCG
+ACGTCGAGCACAGAGTCGCCGCCGCGCGTACGGCGCTGGAGTCCCCGGAGGCGGTGCTGACCTCCCGCGA
+CCCCACGGGGGTCTACACCTTGCTGAAGTCCGCGCTGGACAACGTCGAGCAAGCATCCGACTCCCTCTCC
+GCCTTCATCATCCACGCGGTGGCGGCCGAGCGCCTGGCGCTCCACGGCTGCGGCCCCATCCCGTCGCAGC
+CGGTGGCCCGCATCGCCGACCTCCGCGACGACCACCACGACCGCCACGACGAGCGGCTCGCTCTGAACAG
+GCTCGAGGACGCCAGGGACTTCGCCAAGCGCGCGCTCCGCGGGGTGGATGGAGCCCTCAAGCTCCTGGGC
+TCCGTCCAGTACATGCTTCGCGACCTCGGCGCCGGCGCGGCAGGGCGCAGGCAGGCGATGAAAGAGCAGC
+TCCAGGCCGCCGCCCGCGAGCTCCAGCTCGTGGCGGTCAGCGTGTGCAACACGCGCTCGCTGGCCCGCAT
+GGCCACCGAGCCTCCCATCGGCCAGTGA
+>HORVU.MOREX.r2.3HG0195470.1(Btr2-like-b2)
+ATGGAGGAGTGGAGGAATCTGGCCTTGGCAGCGGCGGATGAAAGCTTCGCCAACACCGTGACCAATGGTG
+TAGCGGAGACCATCGCTAGCGCCATCCAGCAGTACCGCCTGGCCGCCGAGGAGTGCCGCGGATTCGGCCA
+GGGCGTGCACCCGACGCCCAACGCCGGCGAGCGCGCTTCAGCAGGCGGCGACTTCGTCGACCTCGCCATC
+GACCGGATCAAGAGCATCAGCAGGTTCCACGCCGTGCGGGGCAGCGTCTTCTCGCTCTGCGTCCGGCGGA
+TCGGGCTCCAGGGCAACGCGCTGTGGTACATGTGGCAGTTCTACCACGCCGACGAGGCCCGCCACGCGGA
+GACGGCGATGCTGTCGCTGCGTTCCGCCAAGTCGCACGGCCATGCGGCCGTCCGCGTCTTCGAGCGCATG
+CTCAGGCCGCCGTCGCCGCAAGCGGTCGCCCGCGCGTGGGCGCCCGCGGCCGTGCAGCTCCTGCGCCGCG
+CAATCAAGAATCTGGCCATGGCGGAGGTCTCCGTGGGACAGATACGCCCGGCCATCGTCGTCGAGTACAA
+CGACGCCCGGAGGCTTCTGCATGGCTGA
+>HORVU.MOREX.r2.3HG0195480.1(Btr2-like-a)
+ATGGCGGAGTGGATGAATCTGGCGTTGGCGGCGGCGTTTGACAGCTTCGCCTACACCGAGACCAATGGTG
+TAGCGGAGGCCGTCGCTGGCGCCATCCAGCAGTACCGCCTGGCCGCCGAGGAGTGCCGCGGAATCGGCCA
+GGGCGTGCACCCTACGCCCAACGCCGGCCAGGGCGCTTCAGCAGGCGGCGATTCCATCGACCTCGCCCTC
+ACCCGGATCAAGAGCATCACCAGGTTCCACGCCGTGCGGGGTAGCGTCTTCTCCGTCTGCGTCCGCCGCA
+TGGGGCTCCAGCCCGACACGCCGTGGCGGCTCCAGCACGCCACCGCGGCCCGCCACGCGGAGATGGCGAT
+ACGGTGCCTGGGCACCGCCAAGTCGTACGGCCATGCGGCCCTCAGCGTCTTCCACCGCATGCTCAGGCCG
+CCGTCGCCGCAAGCGGTCGCTCGCGCCTGGGCGCCCGCGGCCGAGCTGCTCCTGCGCCGCGCGATCGTCA
+ATCTGGACATGGCGGAGGCCTCCGTGGGGAAGATACGCCCGGCCATCGGCGTCGAGTACAACGACGCCAG
+GAGGCTTCTGCATGGCTGA
+>HORVU.MOREX.r2.3HG0195510.1(Btr1)
+ATGGCGCAGCCGCCGCAATGGAAGGCGATGTACCAGTATGTGACGCGACGGGCGCACGACGGCTGCGCCC
+GCGTCGAGGAAAGCGTCGCCGCGGCGCGCGGAGCGCTGGCGACCCCGATGGTGCTGGACACCCGCGACGC
+CGCGGGGCGGTGCACGTTGCTGCATTCCGCGGTGACCCACGTCGAGCACGCATCCGACTGCCTCTCCGGT
+TTCATAGTCAGCGTGGTGGTGGCGGAGCTCCTGGTGCTCCATGGCTGCGGGGCCGTCCCGTCGAGGCCGG
+TGGCCAGCATCGACGGCCTCCGCCGCAACCGCGACGACCACGACGAGTGGCTCGCTCTGAGCAGGCTCGA
+GGCCGCCAGGGAGCACGGCCAGGACGCGCTCCGCGGAGTGGAGGGGGCCTTCACCCTCCTGGCCTCCGTC
+CGGTTCATGCTTCGCAGCCGGACCCCCGACGCCGCCGGGCGCCGGCAAGCCATGGAAGAGCAGCTCCACG
+CCGCCGCCGTCGAACTTCAGGCCGTGGTGGGCAGCGTGGCGAACATGTCCGCGCTGGCTTTCTTGGCCAC
+TCAGCCTGCCATCCGCAACCGCATCCAGTGA
+```
+
+4. Identify BTR-like genes
+```{sh}
+time \
+makeblastdb -in ${DIR_REF}/GeMoMa_annotations/predicted_cds.fasta \
+            -dbtype nucl
+
+time \
+blastn -db ${DIR_REF}/GeMoMa_annotations/predicted_cds.fasta \
+      -query ${DIR_REF}/GeMoMa_annotations/Btr_genes.fasta \
+      -perc_identity 90 \
+      -qcov_hsp_perc 0.90 \
+      -outfmt "6 qseqid staxids pident evalue qcovhsp bitscore stitle" \
+      -out ${DIR_REF}/GeMoMa_annotations/Btr_genes.blastout
+
 ```
 
 ## Download PRJNA558196 (Barakate et al 2021) anther RNAseq data
@@ -136,7 +233,7 @@ rm -R SRA/
 rm ${DIR_FASTQ}/m54053_*
 ```
 
-## Map the RNAseq to the Golden Promise reference genome
+## Map the RNAseq data to the Golden Promise reference genome
 1. Build the reference index: OUTPUT: ${REF%.fasta*}
 ```{sh}
 time \
@@ -203,7 +300,7 @@ parallel \
 mv ${DIR_BAM}/*.gtf $DIR_GTF
 ```
 
-## Mapping the positions of the BTR genes used in Cross et al, 2022
+## Find the coordinates of the BTR genes we're interested in
 ```{sh}
 BTR1=HORVU.MOREX.r2.3HG0195510
 BTR1_LIKE_a=HORVU.MOREX.r2.3HG0195460
@@ -212,102 +309,299 @@ BTR2='KR813335.1(OUH602)'
 BTR2_LIKE_a=HORVU.MOREX.r2.3HG0195480
 BTR2_LIKE_b1=HORVU.MOREX.r2.3HG0195160
 BTR2_LIKE_b2=HORVU.MOREX.r2.3HG0195470
-BTR1_LIKE=HORVU.MOREX.r2.1HG0041780
-BTR2_LIKE=HORVU.MOREX.r2.2HG0104610
-BTR1_2_LIKE_1=HORVU.MOREX.r2.2HG0086890
-BTR1_2_LIKE_2=HORVU.MOREX.r2.2HG0109560
-BTR1_2_LIKE_3=HORVU.MOREX.r2.6HG0456990
 
 
-for f in $(find $DIR_GTF -name '*.bam.out.gtf')
+echo "# Coordinates of the BTR genes we're interested in." > Btr-like_Tritex.txt
+echo "# Using the Morex V3 genes mapped into the Golden Promise V1 genome." >> Btr-like_Tritex.txt
+echo "# Note that the mRNA coordinates are probably wrong because of the non-de novo nature of the annotation." >> Btr-like_Tritex.txt
+echo "# Hence, we need to manually determine the transcript coordinates from the bam files." >> Btr-like_Tritex.txt
+for q in "BTR1" "BTR1_LIKE_a" "BTR1_LIKE_b1" "BTR2" "BTR2_LIKE_a" "BTR2_LIKE_b1" "BTR2_LIKE_b2"
 do
-    head -n2 $f > ${f%.bam*}.BTRs.gtf
-    for q in "BTR1" "BTR1_LIKE_a" "BTR1_LIKE_b1" "BTR2" "BTR2_LIKE_a" "BTR2_LIKE_b1" "BTR2_LIKE_b2" "BTR1_LIKE" "BTR2_LIKE" "BTR1_2_LIKE_1" "BTR1_2_LIKE_2" "BTR1_2_LIKE_3"
-    do
-        # q="BTR2_LIKE_a"
-        # f=$(find $DIR_GTF -name '*.gtf' | head -n1)
-        grep "${!q}" $f | grep "FPKM" | sed "s/${!q}.1.mrna1/$q/g" >> ${f%.bam*}.BTRs.gtf
-    done
+    # q="BTR2_LIKE_a"
+    # f=$(find $DIR_GTF -name '*.gtf' | head -n1)
+    echo "# ${q}::${!q}" >> Btr-like_Tritex.txt
+    grep "${!q}" REF/Tritex.gff3 >> Btr-like_Tritex.txt
 done
+
+chr3H:
+33767484-33768073
+chrUn:
+26004344-26004925
+26004344-26004940
+26015274-26015852
+26003130-26003718
+26019168-26019676
 
 ```
 
-## Gene expression analysis to identify overexpressed transcripts
-1. Extract TPM and its associated transcript and gene IDs
+
+## Misc
+
+### Trinity transcriptome assembly
 ```{sh}
-echo '# ARGS = ["/data/weedomics/misc/BTR-like_genes_barley/GTF/A-LepZyg1_1.bam.out.gtf"]
-fname_gtf = ARGS[1]
-sample_name = split(basename(fname_gtf), "_")[1][1:(end-1)]
-replicate = split(basename(fname_gtf), "_")[1][end]
-fname_out = string(fname_gtf, ".csv")
+cd $DIR
+sudo apt install bowtie2 salmon samtools
 
-file_out = open(fname_out, "a")
-write(file_out, string("sample,rep,chr,ini,fin,transcript,gene,tpm\n"))
+wget https://github.com/trinityrnaseq/trinityrnaseq/releases/download/Trinity-v2.14.0/trinityrnaseq-v2.14.0.FULL.tar.gz
+tar -xvzf trinityrnaseq-v2.14.0.FULL.tar.gz
+cd trinityrnaseq-v2.14.0
+make
+PATH=${PATH}:$(pwd)
+cd $DIR
+DIR_TRANSCRIPTOMES=${DIR}/TRANSCRIPTOMES
+mkdir $DIR_TRANSCRIPTOMES
 
-file = open(fname_gtf, "r")
-while !eof(file)
-    line = readline(file)
-    if line[1] == "#"[1]
-        continue
-    end
-    tab_delim = split(line, "\t"[1])
-    if tab_delim[3] == "transcript"
-        semicol_delim = split(tab_delim[end], ";"[1])
-        chr_name = tab_delim[1]
-        ini_pos = parse(Int, tab_delim[4])
-        fin_pos = parse(Int, tab_delim[5])
-        transcript_name = split(semicol_delim[match.(Regex("transcript_id"), semicol_delim) .!= nothing][1], "\""[1])[2]
-        gene_name = try
-                split(semicol_delim[match.(Regex("reference_id"), semicol_delim) .!= nothing][1], "\""[1])[2]
-            catch
-                "None"
-            end
-        gene_name = replace(gene_name, "Morex_V3_rna-"=>"")
-        gene_name = replace(gene_name, "_R0"=>"")
-        tpm = parse(Float64, split(semicol_delim[match.(Regex("TPM"), semicol_delim) .!= nothing][1], "\""[1])[2])
-        write(file_out, string(join([sample_name, replicate, chr_name, ini_pos, fin_pos, transcript_name, gene_name, tpm], ","), "\n"))
-    end
-end
-close(file)
-close(file_out)
-' > extract_TPM_per_gene.jl
+
+
+echo '#!/bin/bash
+stage=$1
+rep=$2
+DIR_FASTQ=$3
+DIR_TRANSCRIPTOMES=$4
+# stage=M-PachDipl
+# rep=1
+zcat ${DIR_FASTQ}/${stage}*_${rep}.fastq.gz | gzip > ${DIR_TRANSCRIPTOMES}/${stage}_R${rep}.fastq.gz
+' > concatenate_RNAseq_reps.sh
+chmod +x concatenate_RNAseq_reps.sh
 time \
 parallel \
-julia extract_TPM_per_gene.jl \
-    {} ::: $(find $DIR_GTF -name '*_1.BTRs.gtf')
-```
+./concatenate_RNAseq_reps.sh \
+    {1} \
+    {2} \
+    ${DIR_FASTQ} \
+    ${DIR_TRANSCRIPTOMES} \
+    ::: M-LepZyg M-PachDipl \
+    ::: 1 2
 
-2. Merge TPMs
-```{sh}
-head -n1 $(find ${DIR_GTF} -name '*_1.BTRs.gtf.csv' | head -n1) > ${DIR}/BTR_TPM.csv
-for f in $(find ${DIR_GTF} -name '*_1.BTRs.gtf.csv')
+time \
+for stage in M-LepZyg M-PachDipl
 do
-    tail -n+2 $f >> ${DIR}/BTR_TPM.csv
+# stage=M-PachDipl
+Trinity \
+    --seqType fq \
+    --max_memory 200G \
+    --trimmomatic \
+    --left  ${DIR_TRANSCRIPTOMES}/${stage}_R1.fastq.gz \
+    --right ${DIR_TRANSCRIPTOMES}/${stage}_R2.fastq.gz \
+    --CPU 32 \
+    --output ${DIR_TRANSCRIPTOMES}/trinity-${stage}
 done
 ```
 
-3. Analyse
-```{R}
-dat = read.csv("BTR_TPM.csv")
-dat$sample = as.factor(dat$sample)
-dat$rep = as.factor(dat$rep)
-dat$chr = as.factor(dat$chr)
-dat$gene = as.factor(dat$gene)
 
-for (gene in levels(dat$gene)){
-    # gene = levels(dat$gene)[6]
-    subdf = droplevels(dat[dat$gene==gene, ])
-    X = dat$TPM
-}
-
+### Btr gene sequences
+```{${DIR_REF}/GeMoMa_annotations/Btr_genes.fasta}
+>HORVU.MOREX.r2.2HG0104610.1(Btr2-like-extra)
+ATGGGCAAGCTCCTCTGCGACTCCTCCTCCGGCGGCGCCGCCGTCGCCGTTGCCGAGGCTCTCCTGCCCT
+CCCCCGCCCCGCCCTCGCCGCCCAGCGCCGCCGCCTGCTCCGGATCTGGGCGCTCGACGACCAGCAGCGG
+CTGGTCCGAGCGCCTGGCGCTCCACTGCTGCGGCCCCATCCCGTCGCTGCCGGTGGCCCGCATCGCCGAC
+CTCCGCGACAACCACCACGACCGCCATGACGAGCGGCTCGCTCTGAACAGGCTCGAGGATGCGAGGGACT
+TCGCCAAGCGCGCGCTCCGTGGGGTGGATGGAGCCCTCAAGCTCCTGGGCTCCGTCCAGTACATGCTTCA
+CGACCTCGGCGCCGGCGCGGCCGGGGGTAGGCAGGCGATGGAAGAGCAGCTCCAGGCCGCCGCCCGCAAG
+CTCCAGCTCGTGGCGGTCAGCACGTGCAACACGCGCTCGCTGGCCCGCATGGCCACCGAGCCTCCCATCG
+GCAACCGCGTCCAGTGA
+>HORVU.MOREX.r2.3HG0195160.1(Btr2-like-b1)
+ATGGAGGAGTGGAGGAATCTGGCGTTGGCGGCGGCGGGTGAAAGCTTAGCCAACACCATGACCCGCCACA
+TGGGTGTAGCGGAGGCCATCGCTCGCGCCGGCCAGCGGTACCGCCTGGCCGCCGAGGAGTGTCGCGGATT
+CGGCCAGGGCGTGCACCCGACGCCCAACGCCGGCGAGCGCGCTTCAGCAGGCGGCGACTTCGTCGACCTC
+GCCATCGACCGGATCAAGAGCATCAGCAGGTTCCACGCCGTGCGGGGCAGCGTCTTCTCCCTCTGCGTCC
+GGCGTATCGGGCTCCAGGGCATCGGGCTCCACGGCGACGAGGCCCGCCACGCGGAGACGGCGATGCTGTC
+GCTGCGTTCCGCCAAGTCGCACGGCCATGCGGCCCTCCGCGTCTTCGAGCGCATGCTCAGGCCGCCGTCG
+CCGCAAGCGGTCGCCCGCGCGTGGGCGCCCGCGGCCGAGCAGCTCCTGCGCCGCGCGATCAACAATCTGG
+ACATGGCGGCGGCCTCCGTGGGGCGGATACGCCCGGCCATCGTCGTCGAGTACAAGTACGCCCGGAAGCT
+TCTGAATGCCTCCATATAG
+>HORVU.MOREX.r2.3HG0195170.1(Btr1-like-b1)
+ATGGCGCAGCCGGCAGGATGGAAGGCGATGTACCAGCAAGTGGTGATCGAGGCGGACGGCAGCTGCGCCG
+ACGTCGAGCACAGAGTCGCCGCCGCGCGTACGGCGCTGGAGTCCCCGGAGGCGGTGCTGACCAGCCGCGA
+CCCCACGGGGGTCTACACCTTGCTGAAGTCCGCGCTGGACGACGTCGAGCAAGCATCCGACTCCCTCTCC
+GCCTTCATCATCCACGCGGTGGCGGCCGAGCGCCTGGCGCTCCACGGCTGCGGCGTCATCCCGTCGCAGC
+CGGTGGCCCGCATCGCCGACCTCCGCGACGACCACCACGACCGCCACGACGAGCGGCTCGCTCTGAACAG
+GCTCGAGGACGCCAGGGACTTCGCCAAGCGCGCGCTCCGCGGGGTGGATGGAGCCCTCAAGCTCCTGGGC
+TCCGTCCAGTACATGCTTCGCGACCTCGGCGCCGGCGCGGCAGGGCGCAGGCAGGCGATGAAAGAGCAGC
+TCCAGGCCGCCGCCCGCGAGCTCCAGCTCGTGGCGGTCAGCGTGTGCAACACGCGCTCGCTGGCCCGCAT
+GGCCACCGAGCCTCCCATCGGCAACCGCGTCCAGTGA
+>HORVU.MOREX.r2.3HG0195460.1(Btr1-like-a)
+ATGGCGCAGCCGGCAGGATGGAAGGCGATGTACCAGCAAGTGGTGATCGAGGCGGACGGCAGCTGCGCCG
+ACGTCGAGCACAGAGTCGCCGCCGCGCGTACGGCGCTGGAGTCCCCGGAGGCGGTGCTGACCTCCCGCGA
+CCCCACGGGGGTCTACACCTTGCTGAAGTCCGCGCTGGACAACGTCGAGCAAGCATCCGACTCCCTCTCC
+GCCTTCATCATCCACGCGGTGGCGGCCGAGCGCCTGGCGCTCCACGGCTGCGGCCCCATCCCGTCGCAGC
+CGGTGGCCCGCATCGCCGACCTCCGCGACGACCACCACGACCGCCACGACGAGCGGCTCGCTCTGAACAG
+GCTCGAGGACGCCAGGGACTTCGCCAAGCGCGCGCTCCGCGGGGTGGATGGAGCCCTCAAGCTCCTGGGC
+TCCGTCCAGTACATGCTTCGCGACCTCGGCGCCGGCGCGGCAGGGCGCAGGCAGGCGATGAAAGAGCAGC
+TCCAGGCCGCCGCCCGCGAGCTCCAGCTCGTGGCGGTCAGCGTGTGCAACACGCGCTCGCTGGCCCGCAT
+GGCCACCGAGCCTCCCATCGGCCAGTGA
+>HORVU.MOREX.r2.3HG0195470.1(Btr2-like-b2)
+ATGGAGGAGTGGAGGAATCTGGCCTTGGCAGCGGCGGATGAAAGCTTCGCCAACACCGTGACCAATGGTG
+TAGCGGAGACCATCGCTAGCGCCATCCAGCAGTACCGCCTGGCCGCCGAGGAGTGCCGCGGATTCGGCCA
+GGGCGTGCACCCGACGCCCAACGCCGGCGAGCGCGCTTCAGCAGGCGGCGACTTCGTCGACCTCGCCATC
+GACCGGATCAAGAGCATCAGCAGGTTCCACGCCGTGCGGGGCAGCGTCTTCTCGCTCTGCGTCCGGCGGA
+TCGGGCTCCAGGGCAACGCGCTGTGGTACATGTGGCAGTTCTACCACGCCGACGAGGCCCGCCACGCGGA
+GACGGCGATGCTGTCGCTGCGTTCCGCCAAGTCGCACGGCCATGCGGCCGTCCGCGTCTTCGAGCGCATG
+CTCAGGCCGCCGTCGCCGCAAGCGGTCGCCCGCGCGTGGGCGCCCGCGGCCGTGCAGCTCCTGCGCCGCG
+CAATCAAGAATCTGGCCATGGCGGAGGTCTCCGTGGGACAGATACGCCCGGCCATCGTCGTCGAGTACAA
+CGACGCCCGGAGGCTTCTGCATGGCTGA
+>HORVU.MOREX.r2.3HG0195480.1(Btr2-like-a)
+ATGGCGGAGTGGATGAATCTGGCGTTGGCGGCGGCGTTTGACAGCTTCGCCTACACCGAGACCAATGGTG
+TAGCGGAGGCCGTCGCTGGCGCCATCCAGCAGTACCGCCTGGCCGCCGAGGAGTGCCGCGGAATCGGCCA
+GGGCGTGCACCCTACGCCCAACGCCGGCCAGGGCGCTTCAGCAGGCGGCGATTCCATCGACCTCGCCCTC
+ACCCGGATCAAGAGCATCACCAGGTTCCACGCCGTGCGGGGTAGCGTCTTCTCCGTCTGCGTCCGCCGCA
+TGGGGCTCCAGCCCGACACGCCGTGGCGGCTCCAGCACGCCACCGCGGCCCGCCACGCGGAGATGGCGAT
+ACGGTGCCTGGGCACCGCCAAGTCGTACGGCCATGCGGCCCTCAGCGTCTTCCACCGCATGCTCAGGCCG
+CCGTCGCCGCAAGCGGTCGCTCGCGCCTGGGCGCCCGCGGCCGAGCTGCTCCTGCGCCGCGCGATCGTCA
+ATCTGGACATGGCGGAGGCCTCCGTGGGGAAGATACGCCCGGCCATCGGCGTCGAGTACAACGACGCCAG
+GAGGCTTCTGCATGGCTGA
+>HORVU.MOREX.r2.3HG0195510.1(Btr1)
+ATGGCGCAGCCGCCGCAATGGAAGGCGATGTACCAGTATGTGACGCGACGGGCGCACGACGGCTGCGCCC
+GCGTCGAGGAAAGCGTCGCCGCGGCGCGCGGAGCGCTGGCGACCCCGATGGTGCTGGACACCCGCGACGC
+CGCGGGGCGGTGCACGTTGCTGCATTCCGCGGTGACCCACGTCGAGCACGCATCCGACTGCCTCTCCGGT
+TTCATAGTCAGCGTGGTGGTGGCGGAGCTCCTGGTGCTCCATGGCTGCGGGGCCGTCCCGTCGAGGCCGG
+TGGCCAGCATCGACGGCCTCCGCCGCAACCGCGACGACCACGACGAGTGGCTCGCTCTGAGCAGGCTCGA
+GGCCGCCAGGGAGCACGGCCAGGACGCGCTCCGCGGAGTGGAGGGGGCCTTCACCCTCCTGGCCTCCGTC
+CGGTTCATGCTTCGCAGCCGGACCCCCGACGCCGCCGGGCGCCGGCAAGCCATGGAAGAGCAGCTCCACG
+CCGCCGCCGTCGAACTTCAGGCCGTGGTGGGCAGCGTGGCGAACATGTCCGCGCTGGCTTTCTTGGCCAC
+TCAGCCTGCCATCCGCAACCGCATCCAGTGA
 ```
 
+### Identify BTR-like transcripts
 
-## Extract transcript sequences
+1. Find the most similar transcripts to the Btr-like genes
 ```{sh}
 time \
-gffread \
-    -g ${REF} \
-    ${DIR_GTF}/M-PachDipl1_1.BTRs.gtf \
-    -w M-PachDipl1_1.BTRs.gffread.fasta
+for stage in M-LepZyg M-PachDipl
+do
+    DB=${DIR_TRANSCRIPTOMES}/trinity-${stage}.Trinity.fasta
+    QUERY=${DIR_REF}/GeMoMa_annotations/Btr_genes.fasta
+    makeblastdb -in ${DB} \
+                -dbtype nucl
+    blastn -db ${DB} \
+        -query ${QUERY} \
+        -perc_identity 90 \
+        -qcov_hsp_perc 0.90 \
+        -out ${DIR_TRANSCRIPTOMES}/trinity-${stage}.Trinity.blastout
+    blastn -db ${DB} \
+        -query ${QUERY} \
+        -perc_identity 90 \
+        -qcov_hsp_perc 0.90 \
+        -outfmt "6 qseqid staxids pident evalue qcovhsp bitscore stitle" \
+        -out ${DIR_TRANSCRIPTOMES}/trinity-${stage}.Trinity.blastout.tbl
+done
 ```
+
+2. Generate a short list by identifying the transcripts containing >=99% of the gene sequences (Output: ${DIR}/Btr_genes_transcript_hits_per_stage.txt)
+```{R}
+tryCatch(rm(OUT), error=function(e){print("First run")})
+DIR_TRANSCRIPTOMES = "TRANSCRIPTOMES"
+for (stage in c("M-LepZyg", "M-PachDipl")){
+    # stage = "M-LepZyg"
+    f=file.path(DIR_TRANSCRIPTOMES, paste0("trinity-", stage, ".Trinity.blastout.tbl"))
+    dat = read.delim(f, header=FALSE)
+    colnames(dat) = c("qseqid", "staxids", "pident", "evalue", "qcovhsp", "bitscore", "stitle")
+    dat$transcript = as.factor(unlist(lapply(strsplit(as.character(dat$stitle), " "), FUN=function(x){x[1]})))
+    dat$length = as.numeric(gsub("len=", "", unlist(lapply(strsplit(as.character(dat$stitle), " "), FUN=function(x){x[2]}))))
+    gene_list = levels(dat$qseqid)
+    gene_list = gene_list[order(unlist(lapply(strsplit(gene_list, "\\("), FUN=function(x){x[2]})), decreasing=FALSE)]
+    for (gene in gene_list){
+        # gene = levels(dat$qseqid)[2]
+        subdf = dat[dat$qseqid == gene, ]
+        subdf = subdf[subdf$qcovhsp>=99, ]
+        subdf = subdf[order(subdf$bitscore, decreasing=TRUE), ]
+        subdf = subdf[order(subdf$bitscore, decreasing=TRUE), ]
+        outdf = data.frame(stage=rep(stage, nrow(subdf)),
+                           gene=subdf$qseqid,
+                           transcript=subdf$transcript,
+                           score=subdf$bitscore,
+                           length=subdf$length)
+        if (exists("OUT")==FALSE){
+            OUT = outdf
+        } else {
+            OUT = rbind(OUT, outdf)
+        }
+    }
+}
+write.table(OUT, file="Btr_genes_transcript_hits_per_stage.txt", col.names=FALSE, row.names=FALSE, quote=FALSE, sep="\t")
+```
+
+3. Align the blast hits against the Btr-like gene sequence
+```{sh}
+sudo apt install seqtk emboss
+
+f=${DIR}/Btr_genes_transcript_hits_per_stage.txt
+q=${DIR_REF}/GeMoMa_annotations/Btr_genes.fasta
+
+cat $q > all_sequences_genes_and_transcripts.fa
+
+time \
+for i in $(seq 1 $(cat $f | wc -l))
+do
+    # i=1
+    stage=$(head -n${i} ${f} | tail -n1 | cut -f1); g=${DIR_TRANSCRIPTOMES}/trinity-${stage}.Trinity.fasta
+    gene=$(head -n${i} ${f} | tail -n1 | cut -f2)
+    transcript=$(head -n${i} ${f} | tail -n1 | cut -f3)
+    echo ${gene} > ${gene}.tmp
+    echo ${transcript} > ${transcript}.tmp
+    seqtk subseq ${q} ${gene}.tmp > ${gene}.fa.tmp
+    seqtk subseq ${g} ${transcript}.tmp > ${transcript}.fa.tmp
+    needle \
+        ${transcript}.fa.tmp \
+        ${gene}.fa.tmp \
+        -gapopen 100.0 \
+        -gapextend 1.0 \
+        -outfile ${stage}---${gene}---${transcript}.aln
+    score=$(grep "# Score: " ${stage}---${gene}---${transcript}.aln | cut -d' ' -f3 | cut -d'.' -f1)
+    if [ $score -lt 100 ]
+    then
+        rm ${stage}---${gene}---${transcript}.aln
+        mv ${transcript}.fa.tmp ${transcript}.fa.tmp.bk
+        seqtk seq -r ${transcript}.fa.tmp.bk > ${transcript}.fa.tmp
+        rm ${transcript}.fa.tmp.bk
+        needle \
+            ${transcript}.fa.tmp \
+            ${gene}.fa.tmp \
+            -gapopen 100.0 \
+            -gapextend 1.0 \
+            -outfile ${stage}---${gene}---${transcript}.aln
+    fi
+    cat ${transcript}.fa.tmp >> all_sequences_genes_and_transcripts.fa
+done
+rm *.tmp
+```
+
+4. Determine relationships between sequences
+```{sh}
+mkdir MACSE/
+cd MACSE/
+wget https://bioweb.supagro.inra.fr/macse/releases/macse_v2.06.jar
+MACSE=${DIR}/MACSE/macse_v2.06.jar
+java -Xmx250G -jar ${MACSE} -help
+cd -
+
+# Align the CDS across species
+java -Xmx250G \
+    -jar ${MACSE} \
+    -prog alignSequences \
+    -seq all_sequences_genes_and_transcripts.fa \
+    -out_NT all_sequences_genes_and_transcripts.aln.cds.tmp \
+    -out_AA all_sequences_genes_and_transcripts.aln.pro.tmp
+# Convert stop codons and frameshifts as "---" for compatibility with downstream tools
+java -Xmx8G \
+    -jar ${MACSE} \
+    -prog exportAlignment \
+    -align all_sequences_genes_and_transcripts.aln.cds.tmp \
+    -codonForFinalStop --- \
+    -codonForInternalStop NNN \
+    -codonForExternalFS --- \
+    -codonForInternalFS --- \
+    -out_NT all_sequences_genes_and_transcripts.aln.cds \
+    -out_AA all_sequences_genes_and_transcripts.aln.pro
+rm *.tmp
+
+iqtree -s all_sequences_genes_and_transcripts.aln.cds
+cat all_sequences_genes_and_transcripts.aln.cds.iqtree
+```
+
+5. Manual identification of best fit transcript per gene based on the largest transcript
+
+- Btr1-like-a:  'M-LepZyg---HORVU.MOREX.r2.3HG0195460.1(Btr1-like-a)---TRINITY_DN1356_c0_g1_i29.aln'
+- Btr1-like-b1: HORVU.MOREX.r2.3HG0195170.1(Btr1-like-b1)
+
+'M-PachDipl---HORVU.MOREX.r2.3HG0195170.1(Btr1-like-b1)---TRINITY_DN2578_c0_g1_i4.aln'
