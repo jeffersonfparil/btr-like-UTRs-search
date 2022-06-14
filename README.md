@@ -1,5 +1,5 @@
 # btr-like-UTRs-search
-Search for the exclusively-meiocyte-ProphaseI-specifically expressed BTR1-like and BTR2-like genes in GoldenPromise Barley
+Search for the exclusively-meiocyte-ProphaseI-expressed BTR1-like and BTR2-like genes in the "Golden Promise" barley cultivar
 
 ## Setup working directories
 ```{sh}
