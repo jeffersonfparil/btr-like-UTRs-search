@@ -138,7 +138,7 @@ done
 
 
 ## Btr gene sequences
-```{${DIR_REF}/GeMoMa_annotations/Btr_genes.fasta}
+```{${DIR_REF}/Btr_genes.fasta}
 >HORVU.MOREX.r2.2HG0104610.1(Btr2-like-extra)
 ATGGGCAAGCTCCTCTGCGACTCCTCCTCCGGCGGCGCCGCCGTCGCCGTTGCCGAGGCTCTCCTGCCCT
 CCCCCGCCCCGCCCTCGCCGCCCAGCGCCGCCGCCTGCTCCGGATCTGGGCGCTCGACGACCAGCAGCGG
@@ -213,11 +213,12 @@ TCAGCCTGCCATCCGCAACCGCATCCAGTGA
 ## Identify transcripts coding for the Btr-like genes
 1. Find the most similar transcripts to the Btr-like genes
 ```{sh}
+QUERY=${DIR_REF}/Btr_genes.fasta
+
 time \
 for stage in M-LepZyg M-PachDipl
 do
     DB=${DIR_TRANSCRIPTOMES}/trinity-${stage}.Trinity.fasta
-    QUERY=${DIR_REF}/GeMoMa_annotations/Btr_genes.fasta
     makeblastdb -in ${DB} \
                 -dbtype nucl
     blastn -db ${DB} \
