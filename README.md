@@ -343,7 +343,7 @@ do
         -out_NT ${btr}_like_genes_and_transcripts.aln.cds.tmp \
         -out_AA ${btr}_like_genes_and_transcripts.aln.pro.tmp
     # Convert stop codons and frameshifts as "---" for compatibility with downstream tools
-    java -Xmx8G \
+    java -Xmx250G \
         -jar ${MACSE} \
         -prog exportAlignment \
         -align ${btr}_like_genes_and_transcripts.aln.cds.tmp \
