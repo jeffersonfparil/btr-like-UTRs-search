@@ -373,6 +373,7 @@ PATH=${PATH}:${DIR}/mmseqs/bin
 PATH=${PATH}:${DIR}
 PATH=${PATH}:${DIR}/stringtie
 cd $DIR
+```
 
 ### Install tools
 ```{sh}

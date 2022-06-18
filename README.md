@@ -7,24 +7,33 @@ DIR=/data-weedomics-3/BTR-like-UTRs/search_test.md
 DIR_SRA=${DIR}/SRA ### Assumes the reads are free of adapter sequences
 DIR_FASTQ=${DIR}/FASTQ ### Assumes the reads are free of adapter sequences
 DIR_TRANSCRIPTOMES=${DIR}/TRANSCRIPTOMES
+DIR_BAM=${DIR}/BAM
+DIR_GTF=${DIR}/GTF
+PATH=${PATH}:${DIR}/sratoolkit.3.0.0-ubuntu64/bin
 PATH=${PATH}:${DIR}
 MACSE=${DIR}/MACSE/macse_v2.06.jar
+PATH=${PATH}:${DIR}/hisat2
+PATH=${PATH}:${DIR}/stringtie
 cd $DIR
 ```
 
 ## Install tools
 ```{sh}
 cd $DIR
-sudo apt install -y sra-toolkit \
-                    ncbi-entrez-direct \
+sudo apt install -y ncbi-entrez-direct \
                     cmake \
                     bowtie2 \
                     salmon \
                     samtools \
+                    bamtools \
                     ncbi-blast+ \
                     r-base-core \
                     seqtk \
                     emboss
+wget --output-document sratoolkit.tar.gz https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/current/sratoolkit.current-ubuntu64.tar.gz
+tar -vxzf sratoolkit.tar.gz
+PATH=${PATH}:${DIR}/sratoolkit.3.0.0-ubuntu64/bin
+vdb-config --interactive ### Then choose ${DIR} as the location of the user-repository
 wget https://github.com/trinityrnaseq/trinityrnaseq/releases/download/Trinity-v2.14.0/trinityrnaseq-v2.14.0.FULL.tar.gz
 tar -xvzf trinityrnaseq-v2.14.0.FULL.tar.gz
 cd trinityrnaseq-v2.14.0
@@ -37,6 +46,17 @@ wget https://bioweb.supagro.inra.fr/macse/releases/macse_v2.06.jar
 MACSE=${DIR}/MACSE/macse_v2.06.jar
 java -Xmx250G -jar ${MACSE} -help
 cd -
+git clone https://github.com/DaehwanKimLab/hisat2.git
+cd hisat2
+make
+PATH=${PATH}:${DIR}/hisat2
+sudo ln -s /usr/bin/python3 /usr/bin/python ### hisat2 needs python and python2 is now fully deprecated and we may have to specify that the default python is python3
+cd -
+git clone https://github.com/gpertea/stringtie.git
+cd stringtie
+make release
+cd ${DIR}
+
 ```
 
 ## Download PRJNA558196 (Barakate et al 2021) anther RNAseq data
@@ -86,12 +106,13 @@ parallel --link \
     ${DIR_FASTQ} \
     ::: $(find ${DIR}/SRA -name '*.sra' | sort) \
     ::: $(cat new_names.tmp)
-rm new_names.tmp
-rm -R SRA/
 ```
 
-4. Clean-up: remove the m54053_* sequences
+4. Clean-up
 ```{sh}
+rm new_names.tmp
+rm -R ${DIR}/SRA
+rm -R ${DIR}/PRJNA558196
 rm ${DIR_FASTQ}/m54053_*
 ```
 
@@ -235,7 +256,7 @@ do
 done
 ```
 
-2. Generate a short list by identifying the transcripts containing >=99% of the gene sequences (Output: ${DIR}/Btr_genes_transcript_hits_per_stage.txt)
+2. Generate a short list by identifying the transcripts containing >=99% of the gene sequences (Output: `${DIR}/Btr_genes_transcript_hits_per_stage.txt`)
 ```{R}
 tryCatch(rm(OUT), error=function(e){print("First run")})
 DIR_TRANSCRIPTOMES = "TRANSCRIPTOMES"
@@ -269,7 +290,7 @@ for (stage in c("M-LepZyg", "M-PachDipl")){
 write.table(OUT, file="Btr_genes_transcript_hits_per_stage.txt", col.names=FALSE, row.names=FALSE, quote=FALSE, sep="\t")
 ```
 
-3. Extract the Btr-like gene sequences and their corresponding top blast transcript hits (Output: all_sequences_genes_and_transcripts.fasta)
+3. Extract the Btr-like gene sequences and their corresponding top blast transcript hits (Output: `all_sequences_genes_and_transcripts.fasta`)
 ```{sh}
 f=${DIR}/Btr_genes_transcript_hits_per_stage.txt
 q=${DIR_REF}/GeMoMa_annotations/Btr_genes.fasta
@@ -312,7 +333,7 @@ done
 rm *.tmp
 ```
 
-4. Determine relationships between sequences by aligning them and building gene/transcript trees (Ouputs: [Btr1, Btr2]_like_genes_and_transcripts.aln.cds; and [Btr1, Btr2]_like_genes_and_transcripts.aln.cds.iqtree)
+4. Determine relationships between sequences by aligning them and building gene/transcript trees (Ouputs: `[Btr1, Btr2]_like_genes_and_transcripts.aln.cds`; and `[Btr1, Btr2]_like_genes_and_transcripts.aln.cds.iqtree`)
 ```{sh}
 for btr in Btr1 Btr2 all
 do
@@ -357,4 +378,140 @@ do
     cat ${btr}_like_genes_and_transcripts.aln.cds.iqtree
     rm *.tmp
 done
+```
+
+## Assess expression levels of the transcripts
+1. Build the indexes of the transcriptomes
+```{sh}
+echo '#!/bin/bash
+f=$1
+hisat2-build \
+    ${f} \
+    ${f%.fasta*}
+' > build_index_with_hisat2.sh
+chmod +x build_index_with_hisat2.sh
+time \
+parallel \
+    ./build_index_with_hisat2.sh \
+    {} \
+    ::: $(find ${DIR_TRANSCRIPTOMES} -name '*.fasta')
+```
+
+2. Align in parallel
+```{sh}
+echo '#!/bin/bash
+DIR_TRANSCRIPTOMES=$1
+R1=$2
+R2=$3
+SAMOUT=${R1%.fastq*}.sam
+BAMOUT=${R1%.fastq*}.bam
+REF=${DIR_TRANSCRIPTOMES}/trinity-M-$(echo $R1 | grep -o "PachDipl\|LepZyg").Trinity
+hisat2 \
+    -x ${REF} \
+    -1 ${R1} \
+    -2 ${R2} \
+    -S ${SAMOUT}
+samtools \
+    sort ${SAMOUT} \
+    -O BAM \
+    > ${BAMOUT}
+' > map_RNAseq.sh
+chmod +x map_RNAseq.sh
+time \
+parallel --link \
+./map_RNAseq.sh \
+    ${DIR_TRANSCRIPTOMES} \
+    {1} \
+    {2} \
+    ::: $(find ${DIR_FASTQ} -name '*_1.fastq.gz' | grep "M-PachDipl\|M-LepZyg" | sort) \
+    ::: $(find ${DIR_FASTQ} -name '*_2.fastq.gz' | grep "M-PachDipl\|M-LepZyg" | sort)
+mv ${DIR_FASTQ}/*.bam ${DIR_BAM}
+rm ${DIR_FASTQ}/*.sam
+```
+
+3. Create an annotation file using the transcriptome using itself as the psuedo-reference genome
+```{sh}
+for f in $(find ${DIR_TRANSCRIPTOMES} -name 'trinity-M-*.Trinity.fasta')
+do
+    # f=${DIR_TRANSCRIPTOMES}/trinity-M-PachDipl.Trinity.fasta
+    # f=${DIR_TRANSCRIPTOMES}/trinity-M-LepZyg.Trinity.fasta
+    grep "^>" $f | cut -d' ' -f1 | sed 's/>//g' > names.tmp
+    grep "^>" $f | cut -d' ' -f2 | sed 's/len=//g' > lengths.tmp
+    printf 'MOCK\n%.0s' $(seq 1 $(cat names.tmp | wc -l)) > mock_column2.tmp
+    printf 'mRNA\n%.0s' $(seq 1 $(cat names.tmp | wc -l)) > mock_column3.tmp
+    printf '1\n%.0s' $(seq 1 $(cat names.tmp | wc -l)) > start.tmp
+    printf '.\n%.0s' $(seq 1 $(cat names.tmp | wc -l)) > dots.tmp
+    printf '+\n%.0s' $(seq 1 $(cat names.tmp | wc -l)) > pluses.tmp
+    sed 's/TRINITY_/ID=TRINITY_/g' names.tmp > ids.tmp
+    paste names.tmp \
+        mock_column2.tmp \
+        mock_column3.tmp \
+        start.tmp \
+        lengths.tmp \
+        dots.tmp \
+        pluses.tmp \
+        dots.tmp \
+        ids.tmp > ${f}.mock.gff
+done
+rm *.tmp
+```
+
+4. Strngtie expression level assessment
+```{sh}
+echo '#!/bin/bash
+BAM=$1
+DIR_TRANSCRIPTOMES=$2
+GTF=${DIR_TRANSCRIPTOMES}/trinity-M-$(echo $BAM | grep -o "PachDipl\|LepZyg").Trinity.fasta.mock.gff
+stringtie \
+    -G ${GTF} \
+    -o ${BAM}.stringtie.gtf \
+    ${BAM}
+' > stringtie_run.sh
+chmod +x stringtie_run.sh
+time \
+parallel \
+./stringtie_run.sh \
+    {} \
+    ${DIR_TRANSCRIPTOMES} \
+    ::: $(find ${DIR_BAM} -name '*.bam')
+mv ${DIR_BAM}/*.stringtie.gtf ${DIR_GTF}
+```
+
+5. Extract expression levels of the short-listed putative Btr-like transcripts (Output: `${DIR}/Btr_genes_transcript_hits_per_stage_with_TPM.txt`)
+```{R}
+fname_summary = "Btr_genes_transcript_hits_per_stage.txt"
+dirname_gtf = "GTF"
+vec_fnames_gtf = list.files(dirname_gtf)[grepl(".stringtie.gtf$", list.files("GTF"))]
+
+dat = read.delim(fname_summary, header=FALSE)
+colnames(dat) = c("stage", "Btr_like_gene", "transcript", "bitscore", "transcript_length")
+dat$transcript = as.character(dat$transcript)
+dat$TPM_r1 = NA
+dat$TPM_r2 = NA
+dat$TPM_r3 = NA
+dat$TPM_mu = NA
+
+for (f in vec_fnames_gtf){
+    # f = vec_fnames_gtf[1]
+    fsplit = unlist(strsplit(unlist(strsplit(f, "_"))[1], ""))
+    stage = paste(fsplit[1:(length(fsplit)-1)], collapse="")
+    replicate = fsplit[length(fsplit)]
+    
+    d = read.delim(file.path(dirname_gtf, f), header=FALSE)
+    d = d[grep("TPM", d$V9), ]
+    d = d[(d$V1 %in% unique(dat$transcript)), ]
+    transcripts = d$V1
+    TPM = unlist(lapply(strsplit(as.character(d$V9), "; "), FUN=function(x){as.numeric(gsub(";", "", gsub("TPM ", "", x[length(x)])))}))
+    d = aggregate(TPM~transcripts, data=data.frame(transcripts, TPM), FUN=sum)
+    for (i in 1:nrow(d)){
+        # i = 1
+        ti = d$transcripts[i]
+        ni = d$TPM[i]
+        eval(parse(text=paste0("dat$TPM_r", replicate, "[(dat$stage == stage) & (dat$transcript == ti)] = ni")))
+    }
+}
+
+dat$TPM_mu = (dat$TPM_r1 + dat$TPM_r2 + dat$TPM_r3) / 3
+
+write.table(dat, file="Btr_genes_transcript_hits_per_stage_with_TPM.txt", sep="\t", quote=FALSE, row.names=FALSE)
 ```
