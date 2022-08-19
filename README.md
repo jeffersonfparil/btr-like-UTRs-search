@@ -32,7 +32,8 @@ sudo apt install -y autoconf \
                     ncbi-blast+ \
                     r-base-core \
                     seqtk \
-                    emboss
+                    emboss \
+                    jellyfish
 wget --output-document sratoolkit.tar.gz https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/current/sratoolkit.current-ubuntu64.tar.gz
 tar -vxzf sratoolkit.tar.gz
 PATH=${PATH}:${DIR}/sratoolkit.3.0.0-ubuntu64/bin
@@ -126,16 +127,16 @@ cd $DIR
 DIR_TRANSCRIPTOMES=${DIR}/TRANSCRIPTOMES
 mkdir $DIR_TRANSCRIPTOMES
 
-echo '#!/bin/bash
-stage=$1
-rep=$2
-DIR_FASTQ=$3
-DIR_TRANSCRIPTOMES=$4
-# stage=M-PachDipl
-# rep=1
-zcat ${DIR_FASTQ}/${stage}*_${rep}.fastq.gz | gzip > ${DIR_TRANSCRIPTOMES}/${stage}_R${rep}.fastq.gz
-' > concatenate_RNAseq_reps.sh
-chmod +x concatenate_RNAseq_reps.sh
+    echo '#!/bin/bash
+    stage=$1
+    rep=$2
+    DIR_FASTQ=$3
+    DIR_TRANSCRIPTOMES=$4
+    # stage=M-PachDipl
+    # rep=1
+    zcat ${DIR_FASTQ}/${stage}*_${rep}.fastq.gz | gzip > ${DIR_TRANSCRIPTOMES}/${stage}_R${rep}.fastq.gz
+    ' > concatenate_RNAseq_reps.sh
+    chmod +x concatenate_RNAseq_reps.sh
 time \
 parallel \
 ./concatenate_RNAseq_reps.sh \
@@ -248,13 +249,13 @@ do
                 -dbtype nucl
     blastn -db ${DB} \
         -query ${QUERY} \
-        -perc_identity 90 \
-        -qcov_hsp_perc 0.90 \
+        -perc_identity 80 \
+        -qcov_hsp_perc 80 \
         -out ${DIR_TRANSCRIPTOMES}/trinity-${stage}.Trinity.blastout
     blastn -db ${DB} \
         -query ${QUERY} \
-        -perc_identity 90 \
-        -qcov_hsp_perc 90 \
+        -perc_identity 80 \
+        -qcov_hsp_perc 80 \
         -outfmt "6 qseqid staxids pident evalue qcovhsp bitscore stitle" \
         -out ${DIR_TRANSCRIPTOMES}/trinity-${stage}.Trinity.blastout.tbl
 done
