@@ -2,8 +2,9 @@
 Search for the exclusively-meiocyte-ProphaseI-expressed BTR1-like and BTR2-like genes in the "Golden Promise" barley cultivar
 
 ## Setup working directories
-```{sh}
-DIR=/data-weedomics-3/BTR-like-UTRs/search_test.md
+```shell
+DIR=/data/weedomics/misc/BTR-like_genes_barley
+# DIR=/data-weedomics-1/parilj/BTR_LIKE_GENES_IN_BARLEY
 DIR_SRA=${DIR}/SRA ### Assumes the reads are free of adapter sequences
 DIR_FASTQ=${DIR}/FASTQ ### Assumes the reads are free of adapter sequences
 DIR_TRANSCRIPTOMES=${DIR}/TRANSCRIPTOMES
@@ -18,9 +19,11 @@ cd $DIR
 ```
 
 ## Install tools
-```{sh}
+```shell
 cd $DIR
-sudo apt install -y ncbi-entrez-direct \
+sudo apt install -y autoconf \
+                    default-jre \
+                    ncbi-entrez-direct \
                     cmake \
                     bowtie2 \
                     salmon \
@@ -37,8 +40,8 @@ vdb-config --interactive ### Then choose ${DIR} as the location of the user-repo
 wget https://github.com/trinityrnaseq/trinityrnaseq/releases/download/Trinity-v2.14.0/trinityrnaseq-v2.14.0.FULL.tar.gz
 tar -xvzf trinityrnaseq-v2.14.0.FULL.tar.gz
 cd trinityrnaseq-v2.14.0
-make
 PATH=${PATH}:$(pwd)
+Trinity -h
 cd -
 mkdir MACSE/
 cd MACSE/
@@ -51,17 +54,18 @@ cd hisat2
 make
 PATH=${PATH}:${DIR}/hisat2
 sudo ln -s /usr/bin/python3 /usr/bin/python ### hisat2 needs python and python2 is now fully deprecated and we may have to specify that the default python is python3
+hisat2 -h
 cd -
 git clone https://github.com/gpertea/stringtie.git
 cd stringtie
 make release
+stringtie -h
 cd ${DIR}
-
 ```
 
 ## Download PRJNA558196 (Barakate et al 2021) anther RNAseq data
 1. Download SRA sequences (Output: *.sra binary format)
-```{sh}
+```shell
 time \
 prefetch \
     PRJNA558196 \
@@ -69,7 +73,7 @@ prefetch \
 ```
 
 2. Extract SRA sequence identities (Output: new_names.tmp)
-```{sh}
+```shell
 touch new_names.tmp
 for f in $(find ${DIR}/SRA -name '*.sra' | sort)
 do
@@ -84,7 +88,7 @@ done
 ```
 
 3. Convert SRA into FASTQ sequences, rename, and clean-up (Output: *.fastq.gz)
-```{sh}
+```shell
 echo '#!/bin/bash
 f=$1
 new_name=$2
@@ -109,7 +113,7 @@ parallel --link \
 ```
 
 4. Clean-up
-```{sh}
+```shell
 rm new_names.tmp
 rm -R ${DIR}/SRA
 rm -R ${DIR}/PRJNA558196
@@ -117,7 +121,7 @@ rm ${DIR_FASTQ}/m54053_*
 ```
 
 ## Trinity transcriptome assembly
-```{sh}
+```shell
 cd $DIR
 DIR_TRANSCRIPTOMES=${DIR}/TRANSCRIPTOMES
 mkdir $DIR_TRANSCRIPTOMES
@@ -159,7 +163,7 @@ done
 
 
 ## Btr gene sequences
-```{${DIR_REF}/Btr_genes.fasta}
+```{${DIR}/Btr_genes.fasta}
 >HORVU.MOREX.r2.2HG0104610.1(Btr2-like-extra)
 ATGGGCAAGCTCCTCTGCGACTCCTCCTCCGGCGGCGCCGCCGTCGCCGTTGCCGAGGCTCTCCTGCCCT
 CCCCCGCCCCGCCCTCGCCGCCCAGCGCCGCCGCCTGCTCCGGATCTGGGCGCTCGACGACCAGCAGCGG
@@ -233,8 +237,8 @@ TCAGCCTGCCATCCGCAACCGCATCCAGTGA
 
 ## Identify transcripts coding for the Btr-like genes
 1. Find the most similar transcripts to the Btr-like genes
-```{sh}
-QUERY=${DIR_REF}/Btr_genes.fasta
+```shell
+QUERY=${DIR}/Btr_genes.fasta
 
 time \
 for stage in M-LepZyg M-PachDipl
@@ -250,7 +254,7 @@ do
     blastn -db ${DB} \
         -query ${QUERY} \
         -perc_identity 90 \
-        -qcov_hsp_perc 0.90 \
+        -qcov_hsp_perc 90 \
         -outfmt "6 qseqid staxids pident evalue qcovhsp bitscore stitle" \
         -out ${DIR_TRANSCRIPTOMES}/trinity-${stage}.Trinity.blastout.tbl
 done
@@ -291,9 +295,9 @@ write.table(OUT, file="Btr_genes_transcript_hits_per_stage.txt", col.names=FALSE
 ```
 
 3. Extract the Btr-like gene sequences and their corresponding top blast transcript hits (Output: `all_sequences_genes_and_transcripts.fasta`)
-```{sh}
+```shell
 f=${DIR}/Btr_genes_transcript_hits_per_stage.txt
-q=${DIR_REF}/GeMoMa_annotations/Btr_genes.fasta
+q=${DIR}/Btr_genes.fasta
 
 cat $q > all_sequences_genes_and_transcripts.fasta
 
@@ -334,7 +338,7 @@ rm *.tmp
 ```
 
 4. Determine relationships between sequences by aligning them and building gene/transcript trees (Ouputs: `[Btr1, Btr2]_like_genes_and_transcripts.aln.cds`; and `[Btr1, Btr2]_like_genes_and_transcripts.aln.cds.iqtree`)
-```{sh}
+```shell
 for btr in Btr1 Btr2 all
 do
     # btr=Btr1
@@ -382,7 +386,7 @@ done
 
 ## Assess expression levels of the transcripts
 1. Build the indexes of the transcriptomes
-```{sh}
+```shell
 echo '#!/bin/bash
 f=$1
 hisat2-build \
@@ -398,7 +402,7 @@ parallel \
 ```
 
 2. Align in parallel
-```{sh}
+```shell
 echo '#!/bin/bash
 DIR_TRANSCRIPTOMES=$1
 R1=$2
@@ -430,7 +434,7 @@ rm ${DIR_FASTQ}/*.sam
 ```
 
 3. Create an annotation file using the transcriptome using itself as the psuedo-reference genome
-```{sh}
+```shell
 for f in $(find ${DIR_TRANSCRIPTOMES} -name 'trinity-M-*.Trinity.fasta')
 do
     # f=${DIR_TRANSCRIPTOMES}/trinity-M-PachDipl.Trinity.fasta
@@ -456,8 +460,8 @@ done
 rm *.tmp
 ```
 
-4. Strngtie expression level assessment
-```{sh}
+4. Stringtie expression level assessment
+```shell
 echo '#!/bin/bash
 BAM=$1
 DIR_TRANSCRIPTOMES=$2
@@ -514,4 +518,34 @@ for (f in vec_fnames_gtf){
 dat$TPM_mu = (dat$TPM_r1 + dat$TPM_r2 + dat$TPM_r3) / 3
 
 write.table(dat, file="Btr_genes_transcript_hits_per_stage_with_TPM.txt", sep="\t", quote=FALSE, row.names=FALSE)
+```
+
+## Map the BTR-like transcripts into the Golden Promise genome assembly
+```shell
+mkdir REF/
+cd REF/
+wget https://www.ebi.ac.uk/ena/browser/api/fasta/GCA_902500625.1?download=true&gzip=true && \
+rm wget-log && \
+mv 'GCA_902500625.1?download=true' GoldenPromise.fasta
+
+cd ..
+mkdir BLAST_REF/
+makeblastdb -in REF/GoldenPromise.fasta \
+                -dbtype nucl
+
+sed 's/-//g' all_Btr_like_genes_and_transcripts.aln.cds \
+    > BLAST_REF/BLAST_Btr_like_genes_and_transcripts.cds
+
+blastn -db REF/GoldenPromise.fasta \
+        -query BLAST_REF/BLAST_Btr_like_genes_and_transcripts.cds \
+        -perc_identity 80 \
+        -qcov_hsp_perc 80 \
+        -outfmt "6 qseqid sstart send pident evalue qcovhsp bitscore stitle" \
+        -out BLAST_REF/BLAST_Btr_like_genes_and_transcripts.tsv
+
+blastn -db REF/GoldenPromise.fasta \
+        -query BLAST_REF/BLAST_Btr_like_genes_and_transcripts.cds \
+        -perc_identity 80 \
+        -qcov_hsp_perc 80 \
+        -out BLAST_REF/BLAST_Btr_like_genes_and_transcripts.txt
 ```
