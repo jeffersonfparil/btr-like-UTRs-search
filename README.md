@@ -10,8 +10,9 @@ DIR_FASTQ=${DIR}/FASTQ ### Assumes the reads are free of adapter sequences
 DIR_TRANSCRIPTOMES=${DIR}/TRANSCRIPTOMES
 DIR_BAM=${DIR}/BAM
 DIR_GTF=${DIR}/GTF
-PATH=${PATH}:${DIR}/sratoolkit.3.0.0-ubuntu64/bin
 PATH=${PATH}:${DIR}
+PATH=${PATH}:${DIR}/sratoolkit.3.0.0-ubuntu64/bin
+PATH=${PATH}:${DIR}/trinityrnaseq-v2.14.0
 MACSE=${DIR}/MACSE/macse_v2.06.jar
 PATH=${PATH}:${DIR}/hisat2
 PATH=${PATH}:${DIR}/stringtie
@@ -62,6 +63,9 @@ cd stringtie
 make release
 stringtie -h
 cd ${DIR}
+### Install Python3 packages: scipy, numpy, pandas, matplotlib
+sudo apt install python3-pip
+python3 -m pip install scipy numpy pandas matplotlib
 ```
 
 ## Download PRJNA558196 (Barakate et al 2021) anther RNAseq data
