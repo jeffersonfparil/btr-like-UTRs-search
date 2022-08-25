@@ -4,12 +4,13 @@ Search for the exclusively-meiocyte-ProphaseI-expressed BTR1-like and BTR2-like 
 ## Setup working directories
 ```shell
 DIR=/data/weedomics/misc/BTR-like_genes_barley
-# DIR=/data-weedomics-1/parilj/BTR_LIKE_GENES_IN_BARLEY
+# DIR=/data-weedomics-2/parilj/BTR_barley
 DIR_SRA=${DIR}/SRA ### Assumes the reads are free of adapter sequences
 DIR_FASTQ=${DIR}/FASTQ ### Assumes the reads are free of adapter sequences
 DIR_TRANSCRIPTOMES=${DIR}/TRANSCRIPTOMES
 DIR_BAM=${DIR}/BAM
 DIR_GTF=${DIR}/GTF
+DIR_REF=${DIR}/REF
 PATH=${PATH}:${DIR}
 PATH=${PATH}:${DIR}/sratoolkit.3.0.0-ubuntu64/bin
 PATH=${PATH}:${DIR}/trinityrnaseq-v2.14.0
@@ -34,11 +35,24 @@ sudo apt install -y autoconf \
                     r-base-core \
                     seqtk \
                     emboss \
-                    jellyfish
+                    jellyfish \
+                    iqtree
 wget --output-document sratoolkit.tar.gz https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/current/sratoolkit.current-ubuntu64.tar.gz
 tar -vxzf sratoolkit.tar.gz
 PATH=${PATH}:${DIR}/sratoolkit.3.0.0-ubuntu64/bin
 vdb-config --interactive ### Then choose ${DIR} as the location of the user-repository
+wget https://github.com/mourisl/Rcorrector/archive/refs/tags/v1.0.5.tar.gz
+tar -xvzf v1.0.5.tar.gz
+rm 1.0.5.tar.gz
+cd Rcorrector-1.0.5/
+make
+PATH=${PATH}:$(pwd)
+rcorrector -h
+cd -
+git clone https://github.com/harvardinformatics/TranscriptomeAssemblyTools.git
+cd TranscriptomeAssemblyTools/
+PATH=${PATH}:$(pwd)
+cd -
 wget https://github.com/trinityrnaseq/trinityrnaseq/releases/download/Trinity-v2.14.0/trinityrnaseq-v2.14.0.FULL.tar.gz
 tar -xvzf trinityrnaseq-v2.14.0.FULL.tar.gz
 cd trinityrnaseq-v2.14.0
@@ -154,6 +168,24 @@ parallel \
 time \
 for stage in M-LepZyg M-PachDipl
 do
+perl ${DIR}/Rcorrector-1.0.5/run_rcorrector.pl \
+    -t 23 \
+    -1 ${DIR_TRANSCRIPTOMES}/${stage}_R1.fastq.gz \
+    -2 ${DIR_TRANSCRIPTOMES}/${stage}_R2.fastq.gz
+done
+
+time \
+for stage in M-LepZyg M-PachDipl
+do
+python ${DIR}/TranscriptomeAssemblyTools/FilterUncorrectabledPEfastq.py \
+    -1 ${DIR_TRANSCRIPTOMES}/${stage}_R1.fastq.gz... \
+    -2 ${DIR_TRANSCRIPTOMES}/${stage}_R2.fastq.gz... \
+    -s FILTERED
+done
+
+time \
+for stage in M-LepZyg M-PachDipl
+do
 # stage=M-PachDipl
 Trinity \
     --seqType fq \
@@ -161,7 +193,7 @@ Trinity \
     --trimmomatic \
     --left  ${DIR_TRANSCRIPTOMES}/${stage}_R1.fastq.gz \
     --right ${DIR_TRANSCRIPTOMES}/${stage}_R2.fastq.gz \
-    --CPU 32 \
+    --CPU 23 \
     --output ${DIR_TRANSCRIPTOMES}/trinity-${stage}
 done
 ```
@@ -276,7 +308,7 @@ for (stage in c("M-LepZyg", "M-PachDipl")){
     colnames(dat) = c("qseqid", "staxids", "pident", "evalue", "qcovhsp", "bitscore", "stitle")
     dat$transcript = as.factor(unlist(lapply(strsplit(as.character(dat$stitle), " "), FUN=function(x){x[1]})))
     dat$length = as.numeric(gsub("len=", "", unlist(lapply(strsplit(as.character(dat$stitle), " "), FUN=function(x){x[2]}))))
-    gene_list = levels(dat$qseqid)
+    gene_list = unique(dat$qseqid)
     gene_list = gene_list[order(unlist(lapply(strsplit(gene_list, "\\("), FUN=function(x){x[2]})), decreasing=FALSE)]
     for (gene in gene_list){
         # gene = levels(dat$qseqid)[2]
@@ -383,11 +415,15 @@ do
         -codonForInternalFS --- \
         -out_NT ${btr}_like_genes_and_transcripts.aln.cds \
         -out_AA ${btr}_like_genes_and_transcripts.aln.pro
-    iqtree -s ${btr}_like_genes_and_transcripts.aln.cds
+    iqtree2 -s ${btr}_like_genes_and_transcripts.aln.cds
     cat ${btr}_like_genes_and_transcripts.aln.cds.iqtree
     rm *.tmp
 done
 ```
+
+## Align the genes and transcripts
+- [Btr1-likes](https://www.ncbi.nlm.nih.gov/projects/msaviewer/?anchor=6&coloring=diff&key=A7CZaR-ywGtsnI5sT424kugr936oD6YKqgyCGpYehDAVP3z6lMCK7sn8_KBAcWgMORRkAHokISFmO3I2dDB4K0oCdwxbMHE,hDce7pg1R-zrGwnryAo_FW-sdPMrgiWHKYEBlxWTB72Wsv93F02K8Y6yu7BxrDLRY8k-3SD5e_w85ijrLu0i9hDfLdEB7Ss&columns=d:120,b:55,x:17,aln,e:55,o:150)
+- [Btr2-likes](https://www.ncbi.nlm.nih.gov/projects/msaviewer/?anchor=13&coloring=diff&key=kSIL-40gUvn-Dhz-3R8qAHq5Zbc6xjTDOMUQ0wTXFvmH9u4skBap1nYOQ_kyM7hO6Va0Qqpm8WO2eaJ0pHKoaZpAp06LcqE,EqGIeA6j0Xp9jZ99Xpypg_k65jK5Q7dGu0CTVodSlXwEc22pE5M-VP2ayAXAZGwZPQFgFX4xJTRiLnYjcCV8Pk4XcxlfJXU&columns=d:120,b:55,x:17,aln,e:55,o:150)
 
 ## Assess expression levels of the transcripts
 1. Build the indexes of the transcriptomes
@@ -403,11 +439,12 @@ time \
 parallel \
     ./build_index_with_hisat2.sh \
     {} \
-    ::: $(find ${DIR_TRANSCRIPTOMES} -name '*.fasta')
+    ::: TRANSCRIPTOMES/trinity-M-LepZyg.Trinity.fasta TRANSCRIPTOMES/trinity-M-PachDipl.Trinity.fasta
 ```
 
 2. Align in parallel
 ```shell
+mkdir $DIR_BAM
 echo '#!/bin/bash
 DIR_TRANSCRIPTOMES=$1
 R1=$2
@@ -467,6 +504,7 @@ rm *.tmp
 
 4. Stringtie expression level assessment
 ```shell
+mkdir $DIR_GTF
 echo '#!/bin/bash
 BAM=$1
 DIR_TRANSCRIPTOMES=$2
@@ -527,10 +565,11 @@ write.table(dat, file="Btr_genes_transcript_hits_per_stage_with_TPM.txt", sep="\
 
 ## Map the BTR-like transcripts into the Golden Promise genome assembly
 ```shell
-mkdir REF/
-cd REF/
-wget https://www.ebi.ac.uk/ena/browser/api/fasta/GCA_902500625.1?download=true&gzip=true && \
-rm wget-log && \
+DIR_REF=${DIR}/REF
+mkdir ${DIR_REF}/
+cd ${DIR_REF}/
+wget 'https://www.ebi.ac.uk/ena/browser/api/fasta/GCA_902500625.1?download=true&gzip=true'
+rm wget-log
 mv 'GCA_902500625.1?download=true' GoldenPromise.fasta
 
 cd ..
