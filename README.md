@@ -4,7 +4,7 @@ Search for the exclusively-meiocyte-ProphaseI-expressed BTR1-like and BTR2-like 
 ## Setup working directories
 ```shell
 DIR=/data/weedomics/misc/BTR-like_genes_barley
-# DIR=/data-weedomics-2/parilj/BTR_barley
+# DIR=/data-weedomics-1/parilj/BTR_LIKE_GENES_IN_BARLEY
 DIR_SRA=${DIR}/SRA ### Assumes the reads are free of adapter sequences
 DIR_FASTQ=${DIR}/FASTQ ### Assumes the reads are free of adapter sequences
 DIR_TRANSCRIPTOMES=${DIR}/TRANSCRIPTOMES
@@ -13,10 +13,13 @@ DIR_GTF=${DIR}/GTF
 DIR_REF=${DIR}/REF
 PATH=${PATH}:${DIR}
 PATH=${PATH}:${DIR}/sratoolkit.3.0.0-ubuntu64/bin
+PATH=${PATH}:${DIR}/TrimGalore-0.6.0
 PATH=${PATH}:${DIR}/trinityrnaseq-v2.14.0
 MACSE=${DIR}/MACSE/macse_v2.06.jar
 PATH=${PATH}:${DIR}/hisat2
 PATH=${PATH}:${DIR}/stringtie
+PATH=${PATH}:${DIR}/Rcorrector-1.0.5
+PATH=${PATH}:${DIR}/TranscriptomeAssemblyTools
 cd $DIR
 ```
 
@@ -25,6 +28,9 @@ cd $DIR
 cd $DIR
 sudo apt install -y autoconf \
                     default-jre \
+                    python2.7 \
+                    cutadapt \
+                    trim-galore
                     ncbi-entrez-direct \
                     cmake \
                     bowtie2 \
@@ -43,7 +49,7 @@ PATH=${PATH}:${DIR}/sratoolkit.3.0.0-ubuntu64/bin
 vdb-config --interactive ### Then choose ${DIR} as the location of the user-repository
 wget https://github.com/mourisl/Rcorrector/archive/refs/tags/v1.0.5.tar.gz
 tar -xvzf v1.0.5.tar.gz
-rm 1.0.5.tar.gz
+rm v1.0.5.tar.gz
 cd Rcorrector-1.0.5/
 make
 PATH=${PATH}:$(pwd)
@@ -145,16 +151,17 @@ cd $DIR
 DIR_TRANSCRIPTOMES=${DIR}/TRANSCRIPTOMES
 mkdir $DIR_TRANSCRIPTOMES
 
-    echo '#!/bin/bash
-    stage=$1
-    rep=$2
-    DIR_FASTQ=$3
-    DIR_TRANSCRIPTOMES=$4
-    # stage=M-PachDipl
-    # rep=1
-    zcat ${DIR_FASTQ}/${stage}*_${rep}.fastq.gz | gzip > ${DIR_TRANSCRIPTOMES}/${stage}_R${rep}.fastq.gz
-    ' > concatenate_RNAseq_reps.sh
-    chmod +x concatenate_RNAseq_reps.sh
+### Concatenate reads
+echo '#!/bin/bash
+stage=$1
+rep=$2
+DIR_FASTQ=$3
+DIR_TRANSCRIPTOMES=$4
+# stage=M-PachDipl
+# rep=1
+zcat ${DIR_FASTQ}/${stage}*_${rep}.fastq.gz | gzip > ${DIR_TRANSCRIPTOMES}/${stage}_R${rep}.fastq.gz
+' > concatenate_RNAseq_reps.sh
+chmod +x concatenate_RNAseq_reps.sh
 time \
 parallel \
 ./concatenate_RNAseq_reps.sh \
@@ -165,6 +172,7 @@ parallel \
     ::: M-LepZyg M-PachDipl \
     ::: 1 2
 
+### K-mer-based error correction of RNAseq raw reads (Outputs: ${DIR_TRANSCRIPTOMES}/${stage}_R1.cor.fq.gz, and ${DIR_TRANSCRIPTOMES}/${stage}_R2.cor.fq.gz)
 time \
 for stage in M-LepZyg M-PachDipl
 do
@@ -172,17 +180,40 @@ perl ${DIR}/Rcorrector-1.0.5/run_rcorrector.pl \
     -t 23 \
     -1 ${DIR_TRANSCRIPTOMES}/${stage}_R1.fastq.gz \
     -2 ${DIR_TRANSCRIPTOMES}/${stage}_R2.fastq.gz
+mv ${stage}_R1.cor.fq.gz ${DIR_TRANSCRIPTOMES}/
+mv ${stage}_R2.cor.fq.gz ${DIR_TRANSCRIPTOMES}/
 done
 
+### Remove read pairs where at least one of the reads is unfixable (riddled with Ns)
 time \
 for stage in M-LepZyg M-PachDipl
 do
-python ${DIR}/TranscriptomeAssemblyTools/FilterUncorrectabledPEfastq.py \
-    -1 ${DIR_TRANSCRIPTOMES}/${stage}_R1.fastq.gz... \
-    -2 ${DIR_TRANSCRIPTOMES}/${stage}_R2.fastq.gz... \
+python2.7 ${DIR}/TranscriptomeAssemblyTools/FilterUncorrectabledPEfastq.py \
+    -1 ${DIR_TRANSCRIPTOMES}/${stage}_R1.cor.fq.gz \
+    -2 ${DIR_TRANSCRIPTOMES}/${stage}_R2.cor.fq.gz \
     -s FILTERED
+mv unfixrm_*.fq ${DIR_TRANSCRIPTOMES}/
 done
 
+### Trim-off adapters and low quality bases
+time \
+for stage in M-LepZyg M-PachDipl
+do
+trim_galore \
+    --paired \
+    --retain_unpaired \
+    --phred33 \
+    --output_dir TRIMMED \
+    --length 36 \
+    -q 5 \
+    --stringency 1 \
+    -e 0.1 \
+    ${DIR_TRANSCRIPTOMES}/unfixrm_${stage}_R1.cor.fq \
+    ${DIR_TRANSCRIPTOMES}/unfixrm_${stage}_R2.cor.fq
+done
+mv TRIMMED/ ${DIR_TRANSCRIPTOMES}/
+
+### Asemble the transcriptome
 time \
 for stage in M-LepZyg M-PachDipl
 do
@@ -191,8 +222,8 @@ Trinity \
     --seqType fq \
     --max_memory 200G \
     --trimmomatic \
-    --left  ${DIR_TRANSCRIPTOMES}/${stage}_R1.fastq.gz \
-    --right ${DIR_TRANSCRIPTOMES}/${stage}_R2.fastq.gz \
+    --left  ${DIR_TRANSCRIPTOMES}/unfixrm_${stage}_R1.cor_val_1.fq \
+    --right ${DIR_TRANSCRIPTOMES}/unfixrm_${stage}_R2.cor_val_2.fq \
     --CPU 23 \
     --output ${DIR_TRANSCRIPTOMES}/trinity-${stage}
 done
