@@ -146,12 +146,15 @@ rm ${DIR_FASTQ}/m54053_*
 ```
 
 ## Trinity transcriptome assembly
+1. Set working directory
 ```shell
 cd $DIR
 DIR_TRANSCRIPTOMES=${DIR}/TRANSCRIPTOMES
 mkdir $DIR_TRANSCRIPTOMES
+```
 
-### Concatenate reads
+2. Concatenate reads
+```shell
 echo '#!/bin/bash
 stage=$1
 rep=$2
@@ -171,8 +174,10 @@ parallel \
     ${DIR_TRANSCRIPTOMES} \
     ::: M-LepZyg M-PachDipl \
     ::: 1 2
+```
 
-### K-mer-based error correction of RNAseq raw reads (Outputs: ${DIR_TRANSCRIPTOMES}/${stage}_R1.cor.fq.gz, and ${DIR_TRANSCRIPTOMES}/${stage}_R2.cor.fq.gz)
+3. K-mer-based error correction of RNAseq raw reads (Outputs: ${DIR_TRANSCRIPTOMES}/${stage}_R1.cor.fq.gz, and ${DIR_TRANSCRIPTOMES}/${stage}_R2.cor.fq.gz)
+```shell
 time \
 for stage in M-LepZyg M-PachDipl
 do
@@ -183,8 +188,10 @@ perl ${DIR}/Rcorrector-1.0.5/run_rcorrector.pl \
 mv ${stage}_R1.cor.fq.gz ${DIR_TRANSCRIPTOMES}/
 mv ${stage}_R2.cor.fq.gz ${DIR_TRANSCRIPTOMES}/
 done
+```
 
-### Remove read pairs where at least one of the reads is unfixable (riddled with Ns)
+4. Remove read pairs where at least one of the reads is unfixable (riddled with Ns)
+```shell
 time \
 for stage in M-LepZyg M-PachDipl
 do
@@ -194,8 +201,10 @@ python2.7 ${DIR}/TranscriptomeAssemblyTools/FilterUncorrectabledPEfastq.py \
     -s FILTERED
 mv unfixrm_*.fq ${DIR_TRANSCRIPTOMES}/
 done
+```
 
-### Trim-off adapters and low quality bases
+5. Trim-off adapters and low quality bases
+```shell
 time \
 for stage in M-LepZyg M-PachDipl
 do
@@ -212,8 +221,10 @@ trim_galore \
     ${DIR_TRANSCRIPTOMES}/unfixrm_${stage}_R2.cor.fq
 done
 mv TRIMMED/ ${DIR_TRANSCRIPTOMES}/
+```
 
-### Asemble the transcriptome
+6. Asemble the transcriptome
+```shell
 time \
 for stage in M-LepZyg M-PachDipl
 do
@@ -222,13 +233,12 @@ Trinity \
     --seqType fq \
     --max_memory 200G \
     --trimmomatic \
-    --left  ${DIR_TRANSCRIPTOMES}/unfixrm_${stage}_R1.cor_val_1.fq \
-    --right ${DIR_TRANSCRIPTOMES}/unfixrm_${stage}_R2.cor_val_2.fq \
+    --left  ${DIR_TRANSCRIPTOMES}/TRIMMED/unfixrm_${stage}_R1.cor_val_1.fq \
+    --right ${DIR_TRANSCRIPTOMES}/TRIMMED/unfixrm_${stage}_R2.cor_val_2.fq \
     --CPU 23 \
     --output ${DIR_TRANSCRIPTOMES}/trinity-${stage}
 done
 ```
-
 
 ## Btr gene sequences
 ```{${DIR}/Btr_genes.fasta}
@@ -373,7 +383,8 @@ time \
 for i in $(seq 1 $(cat $f | wc -l))
 do
     # i=1
-    stage=$(head -n${i} ${f} | tail -n1 | cut -f1); g=${DIR_TRANSCRIPTOMES}/trinity-${stage}.Trinity.fasta
+    stage=$(head -n${i} ${f} | tail -n1 | cut -f1)
+    g=${DIR_TRANSCRIPTOMES}/trinity-${stage}.Trinity.fasta
     gene=$(head -n${i} ${f} | tail -n1 | cut -f2)
     transcript=$(head -n${i} ${f} | tail -n1 | cut -f3)
     echo ${gene} > ${gene}.tmp
@@ -453,8 +464,10 @@ done
 ```
 
 ## Align the genes and transcripts
-- [Btr1-likes](https://www.ncbi.nlm.nih.gov/projects/msaviewer/?anchor=6&coloring=diff&key=A7CZaR-ywGtsnI5sT424kugr936oD6YKqgyCGpYehDAVP3z6lMCK7sn8_KBAcWgMORRkAHokISFmO3I2dDB4K0oCdwxbMHE,hDce7pg1R-zrGwnryAo_FW-sdPMrgiWHKYEBlxWTB72Wsv93F02K8Y6yu7BxrDLRY8k-3SD5e_w85ijrLu0i9hDfLdEB7Ss&columns=d:120,b:55,x:17,aln,e:55,o:150)
-- [Btr2-likes](https://www.ncbi.nlm.nih.gov/projects/msaviewer/?anchor=13&coloring=diff&key=kSIL-40gUvn-Dhz-3R8qAHq5Zbc6xjTDOMUQ0wTXFvmH9u4skBap1nYOQ_kyM7hO6Va0Qqpm8WO2eaJ0pHKoaZpAp06LcqE,EqGIeA6j0Xp9jZ99Xpypg_k65jK5Q7dGu0CTVodSlXwEc22pE5M-VP2ayAXAZGwZPQFgFX4xJTRiLnYjcCV8Pk4XcxlfJXU&columns=d:120,b:55,x:17,aln,e:55,o:150)
+Go to "https://www.ncbi.nlm.nih.gov/projects/msaviewer/", and upload the alignments.
+
+- [Btr1-likes](https://www.ncbi.nlm.nih.gov/projects/msaviewer/?anchor=7&coloring=diff&key=RPfeLlj1hywr28krCMr_1a9gcy0sXCJZLl8GSRJNAGORbPNbrmFQmts07qsfTRMwQigfPAEYWh0dBwkKDwwDFzE-DDAgDAo,80Bpme9CMJucbH6cv31IYhjXxJub6pXvmemx_6X7t9Um2kTtGdeaq4xDuXK1xi-7fqMjtz2TZpYhjDWBM4c_nA21MLschzY&columns=d:300,x:17,aln)
+- [Btr2-likes](https://www.ncbi.nlm.nih.gov/projects/msaviewer/?anchor=12&coloring=diff&key=UuHIOE7jkTo9zd89Htzpw7l2Z5k46DbtOusS_Qb5FNeF2Ofsz9avbxhaLYM1rOTRtcno3fb5rfzq5v7r-O309sbf-9HX7f0,_E9mluBNP5STY3GTsHJHbRfYy3qUC5oOlgi-HqoauDQpO0sPYzUGJBwYKdoC8hSPRZcYgwanXaIauA61CLMEqDaBC48nsw0&columns=d:300,x:17,aln)
 
 ## Assess expression levels of the transcripts
 1. Build the indexes of the transcriptomes
@@ -600,13 +613,12 @@ DIR_REF=${DIR}/REF
 mkdir ${DIR_REF}/
 cd ${DIR_REF}/
 wget 'https://www.ebi.ac.uk/ena/browser/api/fasta/GCA_902500625.1?download=true&gzip=true'
-rm wget-log
-mv 'GCA_902500625.1?download=true' GoldenPromise.fasta
-
-cd ..
+mv 'GCA_902500625.1?download=true&gzip=true' GoldenPromise.fasta.gz
+gunzip GoldenPromise.fasta.gz
+cd -
 mkdir BLAST_REF/
 makeblastdb -in REF/GoldenPromise.fasta \
-                -dbtype nucl
+    -dbtype nucl
 
 sed 's/-//g' all_Btr_like_genes_and_transcripts.aln.cds \
     > BLAST_REF/BLAST_Btr_like_genes_and_transcripts.cds
@@ -623,4 +635,33 @@ blastn -db REF/GoldenPromise.fasta \
         -perc_identity 80 \
         -qcov_hsp_perc 80 \
         -out BLAST_REF/BLAST_Btr_like_genes_and_transcripts.txt
+```
+
+## Map the reads into the Btr-like transcripts (visualise alignments, bam files in [IGV](https://software.broadinstitute.org/software/igv/download))
+```shell
+cd BLAST_REF/
+### Build the indices
+bwa index \
+    -p BLAST_Btr_like_genes_and_transcripts \
+    -a bwtsw \
+    BLAST_Btr_like_genes_and_transcripts.cds
+samtools faidx \
+    BLAST_Btr_like_genes_and_transcripts.cds
+### Map the raw RNAseq reads into the Btr-like genes and trancripts
+time \
+for stage in M-LepZyg M-PachDipl
+do
+FNAME_REF=BLAST_Btr_like_genes_and_transcripts
+MAPQ=10
+FNAME_READ1=${DIR_TRANSCRIPTOMES}/TRIMMED/unfixrm_${stage}_R1.cor_val_1.fq
+FNAME_READ2=${DIR_TRANSCRIPTOMES}/TRIMMED/unfixrm_${stage}_R2.cor_val_2.fq
+bwa mem ${FNAME_REF} ${FNAME_READ1} ${FNAME_READ2} | \
+    samtools view -q ${MAPQ} -h | \
+    samtools sort | \
+    sed 's/(B/-B/g' | sed 's/)/-/g' | \
+    samtools view -b > READS_MAPPED_ONTO_BTR_LIKE_GENES_AND_TRANSCRIPTS-${stage}.bam
+done
+cd -
+### Visualise the alignments on IGV
+wget https://data.broadinstitute.org/igv/projects/downloads/2.14/IGV_Linux_2.14.0_WithJava.zip
 ```

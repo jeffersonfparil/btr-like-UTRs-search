@@ -1,0 +1,163 @@
+IQ-TREE 2.0.7 built Jan 21 2022
+
+Input file name: Btr2_like_genes_and_transcripts.aln.cds
+Type of analysis: ModelFinder + tree reconstruction
+Random seed number: 278761
+
+REFERENCES
+----------
+
+To cite IQ-TREE please use:
+
+Bui Quang Minh, Heiko A. Schmidt, Olga Chernomor, Dominik Schrempf,
+Michael D. Woodhams, Arndt von Haeseler, and Robert Lanfear (2020)
+IQ-TREE 2: New models and efficient methods for phylogenetic inference
+in the genomic era. Mol. Biol. Evol., in press.
+https://doi.org/10.1093/molbev/msaa015
+
+To cite ModelFinder please use: 
+
+Subha Kalyaanamoorthy, Bui Quang Minh, Thomas KF Wong, Arndt von Haeseler,
+and Lars S Jermiin (2017) ModelFinder: Fast model selection for
+accurate phylogenetic estimates. Nature Methods, 14:587–589.
+https://doi.org/10.1038/nmeth.4285
+
+SEQUENCE ALIGNMENT
+------------------
+
+Input data: 13 sequences with 2058 nucleotide sites
+Number of constant sites: 1487 (= 72.2546% of all sites)
+Number of invariant (constant or ambiguous constant) sites: 1487 (= 72.2546% of all sites)
+Number of parsimony informative sites: 427
+Number of distinct site patterns: 410
+
+ModelFinder
+-----------
+
+Best-fit model according to BIC: K2P+I
+
+List of models sorted by BIC scores: 
+
+Model                  LogL         AIC      w-AIC        AICc     w-AICc         BIC      w-BIC
+K2P+I             -6756.785   13563.570 +    0.166   13564.210 +    0.181   13704.307 +    0.846
+JC+I              -6762.799   13573.598 -  0.00111   13574.188 -  0.00123   13708.706 +   0.0938
+TNe+I             -6756.244   13564.488 +    0.105   13565.179 +    0.111   13710.854 -    0.032
+K3P+I             -6756.464   13564.929 +   0.0844   13565.620 +   0.0893   13711.295 -   0.0257
+TIM2e+I           -6755.753   13565.506 +   0.0632   13566.250 +   0.0652   13717.502 -  0.00115
+TIMe+I            -6755.923   13565.847 +   0.0533   13566.591 +    0.055   13717.843 - 0.000973
+TIM3e+I           -6756.195   13566.391 -   0.0406   13567.135 -   0.0419   13718.387 - 0.000741
+TVMe+I            -6755.868   13567.735 -   0.0207   13568.536 -   0.0208   13725.361 - 2.27e-05
+TPM2u+F+I         -6753.702   13565.404 +   0.0665   13566.262 +   0.0648   13728.659 - 4.36e-06
+TPM2+F+I          -6753.702   13565.404 +   0.0665   13566.262 +   0.0648   13728.659 - 4.36e-06
+HKY+F+I           -6758.832   13573.665 -  0.00107   13574.465 -  0.00107   13731.290 - 1.17e-06
+SYM+I             -6755.356   13568.712 -   0.0127   13569.570 -   0.0124   13731.967 - 8.34e-07
+TIM2+F+I          -6752.256   13564.512 +    0.104   13565.430 +   0.0982   13733.397 - 4.08e-07
+TPM3+F+I          -6757.072   13572.143 -  0.00229   13573.001 -  0.00223   13735.398 -  1.5e-07
+TPM3u+F+I         -6757.072   13572.143 -  0.00229   13573.001 -  0.00223   13735.398 -  1.5e-07
+TN+F+I            -6757.326   13572.652 -  0.00178   13573.510 -  0.00173   13735.907 - 1.16e-07
+F81+F+I           -6765.768   13585.536 - 2.83e-06   13586.281 - 2.91e-06   13737.532 - 5.16e-08
+K3Pu+F+I          -6758.753   13575.506 - 0.000426   13576.364 - 0.000415   13738.762 - 2.79e-08
+TVM+F+I           -6751.530   13565.059 +   0.0791   13566.038 +   0.0725   13739.573 - 1.86e-08
+TIM3+F+I          -6755.564   13571.128 -   0.0038   13572.045 -   0.0036   13740.012 - 1.49e-08
+TIM+F+I           -6757.246   13574.492 - 0.000707   13575.409 - 0.000669   13743.376 - 2.78e-09
+GTR+F+I           -6750.082   13564.164 +    0.124   13565.207 +     0.11   13744.307 - 1.74e-09
+GTR+F+G4          -6765.282   13594.564 -  3.1e-08   13595.607 - 2.75e-08   13774.708 - 4.36e-16
+GTR+F+I+G4        -6768.735   13603.471 - 3.61e-10   13604.580 -  3.1e-10   13789.244 - 3.04e-19
+GTR+F+R4          -6760.417   13594.833 - 2.71e-08   13596.225 - 2.02e-08   13803.124 - 2.95e-22
+GTR+F+R3          -6771.038   13612.076 - 4.88e-12   13613.323 - 3.91e-12   13809.109 - 1.48e-23
+GTR+F+R5          -6757.227   13592.454 -  8.9e-08   13594.000 - 6.14e-08   13812.004 - 3.48e-24
+GTR+F+R2          -6783.661   13633.322 - 1.19e-16   13634.430 - 1.02e-16   13819.095 -    1e-25
+GTR+F             -6937.025   13936.050 - 2.18e-82   13937.029 -    2e-82   14110.564 - 5.12e-89
+
+AIC, w-AIC   : Akaike information criterion scores and weights.
+AICc, w-AICc : Corrected AIC scores and weights.
+BIC, w-BIC   : Bayesian information criterion scores and weights.
+
+Plus signs denote the 95% confidence sets.
+Minus signs denote significant exclusion.
+
+SUBSTITUTION PROCESS
+--------------------
+
+Model of substitution: K2P+I
+
+Rate parameter R:
+
+  A-C: 1.0000
+  A-G: 1.3511
+  A-T: 1.0000
+  C-G: 1.0000
+  C-T: 1.3511
+  G-T: 1.0000
+
+State frequencies: (equal frequencies)
+
+Rate matrix Q:
+
+  A        -1    0.2984    0.4032    0.2984
+  C    0.2984        -1    0.2984    0.4032
+  G    0.4032    0.2984        -1    0.2984
+  T    0.2984    0.4032    0.2984        -1
+
+Model of rate heterogeneity: Invar
+Proportion of invariable sites: 0.6084
+
+ Category  Relative_rate  Proportion
+  0         0              0.6084
+  1         2.554          0.3916
+
+MAXIMUM LIKELIHOOD TREE
+-----------------------
+
+Log-likelihood of the tree: -6756.7811 (s.e. 125.1564)
+Unconstrained log-likelihood (without tree): -9391.8928
+Number of free parameters (#branches + #model parameters): 25
+Akaike information criterion (AIC) score: 13563.5623
+Corrected Akaike information criterion (AICc) score: 13564.2021
+Bayesian information criterion (BIC) score: 13704.2995
+
+Total tree length (sum of branch lengths): 0.8474
+Sum of internal branch lengths: 0.5140 (60.6525% of tree length)
+
+WARNING: 2 near-zero internal branches (<0.0005) should be treated with caution
+         Such branches are denoted by '**' in the figure below
+
+NOTE: Tree is UNROOTED although outgroup taxon 'TRINITY_DN8473_c0_g2_i3' is drawn at root
+
++--TRINITY_DN8473_c0_g2_i3
+|
+|                          +**TRINITY_DN8473_c0_g2_i5
+|                   +------|
+|                   |      +--------HORVU.MOREX.r2.3HG0195470.1_Btr2-like-b2_
+|            +------|
+|            |      |                            +**TRINITY_DN8473_c0_g2_i2
+|            |      |                         +**|
+|            |      |                         |  +----------------TRINITY_DN5625_c0_g1_i15
+|            |      |                      +**|
+|            |      |                      |  +**TRINITY_DN5625_c0_g1_i16
+|            |      |                   +--|
+|            |      |                   |  +--HORVU.MOREX.r2.3HG0195480.1_Btr2-like-a_
+|            |      +-------------------|
+|            |                          +--TRINITY_DN8473_c0_g2_i4
++------------|
+|            |       +**TRINITY_DN5625_c0_g1_i2
+|            +-------|
+|                    |          +**TRINITY_DN5625_c0_g1_i3
+|                    |       +--|
+|                    |       |  +--TRINITY_DN5625_c0_g1_i13
+|                    +-------|
+|                            +-----HORVU.MOREX.r2.3HG0195160.1_Btr2-like-b1_
+|
++--TRINITY_DN8473_c0_g2_i7
+
+Tree in newick format:
+
+(TRINITY_DN8473_c0_g2_i3:0.0068650600,(((TRINITY_DN8473_c0_g2_i5:0.0000022618,HORVU.MOREX.r2.3HG0195470.1_Btr2-like-b2_:0.0712003397):0.0559396794,((((TRINITY_DN8473_c0_g2_i2:0.0000010000,TRINITY_DN5625_c0_g1_i15:0.1327670453):0.0000010000,TRINITY_DN5625_c0_g1_i16:0.0000010000):0.0000022189,HORVU.MOREX.r2.3HG0195480.1_Btr2-like-a_:0.0125727203):0.0096439626,TRINITY_DN8473_c0_g2_i4:0.0287832374):0.1509544532):0.0595187057,(TRINITY_DN5625_c0_g1_i2:0.0000021357,((TRINITY_DN5625_c0_g1_i3:0.0000010000,TRINITY_DN5625_c0_g1_i13:0.0109918962):0.0056646465,HORVU.MOREX.r2.3HG0195160.1_Btr2-like-b1_:0.0462388144):0.0675386379):0.0658183282):0.0988723328,TRINITY_DN8473_c0_g2_i7:0.0239947103);
+
+TIME STAMP
+----------
+
+Date and time: Tue Aug 23 23:45:43 2022
+Total CPU time used: 0.79176 seconds (0h:0m:0s)
+Total wall-clock time used: 0.820473 seconds (0h:0m:0s)
+
