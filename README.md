@@ -519,7 +519,7 @@ mv ${DIR_FASTQ}/*.bam ${DIR_BAM}
 rm ${DIR_FASTQ}/*.sam
 ```
 
-3. Create an annotation file using the transcriptome using itself as the psuedo-reference genome
+3. Create an annotation file using the transcriptome using itself as the pseudo-reference genome
 ```shell
 for f in $(find ${DIR_TRANSCRIPTOMES} -name 'trinity-M-*.Trinity.fasta')
 do
@@ -656,10 +656,10 @@ MAPQ=10
 FNAME_READ1=${DIR_TRANSCRIPTOMES}/TRIMMED/unfixrm_${stage}_R1.cor_val_1.fq
 FNAME_READ2=${DIR_TRANSCRIPTOMES}/TRIMMED/unfixrm_${stage}_R2.cor_val_2.fq
 bwa mem ${FNAME_REF} ${FNAME_READ1} ${FNAME_READ2} | \
-    samtools view -q ${MAPQ} -h | \
-    samtools sort | \
-    sed 's/(B/-B/g' | sed 's/)/-/g' | \
-    samtools view -b > READS_MAPPED_ONTO_BTR_LIKE_GENES_AND_TRANSCRIPTS-${stage}.bam
+    samtools view -b -q ${MAPQ} | \
+    samtools sort > READS_MAPPED_ONTO_BTR_LIKE_GENES_AND_TRANSCRIPTS-${stage}.bam
+samtools view READS_MAPPED_ONTO_BTR_LIKE_GENES_AND_TRANSCRIPTS-${stage}.bam | \
+    sed 's/(B/-B/g' | sed 's/)/-/g' > READS_MAPPED_ONTO_BTR_LIKE_GENES_AND_TRANSCRIPTS-${stage}.sam
 done
 cd -
 ### Visualise the alignments on IGV
